@@ -7,32 +7,31 @@ import os
 import glob
 
 
-def create(data,metadata,band_used,name,addPISN=True,dff=True,extra=True,Dbool=False,complete=True,mini=5,totrain=True):
+def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=True,Dbool=False,complete=True,mini=5,totrain=True):
+    
 
-'''
-addPISN : add pair instability supernovae to the database
-data : the light curve data frame
-metadata : the corresponding meta data frame
-band : array like of all the passband you want to keep (ex/ [0,1,2,3,4,5] is to keep them all)
-name : name given to the saved .pkl file at the end
-dff : only deep drilling field ?
-extra : only extra galactic objects ?
-Dbool : only detected boolean ?
-complete : keep only objects that have a minimum of 'mini' points in each chosen passband. 
-mini : minimum number of points in a passband (only the one chose in 'band') to be consider exploitable
-totrain : are you creating a training data sample ? (include or not the target column)
-'''
+#addPISN : add pair instability supernovae to the database
+#PISNfile : fused PISN data frame
+#data : the light curve data frame
+#metadata : the corresponding meta data frame
+#band : array like of all the passband you want to keep (ex/ [0,1,2,3,4,5] is to keep them all)
+#name : name given to the saved .pkl file at the end
+#dff : only deep drilling field ?
+#extra : only extra galactic objects ?
+#Dbool : only detected boolean ?
+#complete : keep only objects that have a minimum of 'mini' points in each chosen passband. 
+#mini : minimum number of points in a passband (only the one chose in 'band') to be consider exploitable
+#totrain : are you creating a training data sample ? (include or not the target column)
+
 
     print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)))
     
-    #Add PISN extra data
+    #We add the PISN data to obtain our training sample
     if addPISN==True:
+        data=pd.concat([PISNdf,data])
+        print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)))
+  
         
-        all_filenames = [i for i in glob.glob(f"PLAsTiCC_PISN/PISN/*{'.csv'}")]
-        PISN = pd.concat([pd.read_csv(f) for f in all_filenames])
-        PISN=PISN.drop("Unnamed: 0",axis=1)
-        PISN['target']=994
-
     #Conditions on the deep drilling field and the redshift
     isDDF = metadata['ddf_bool']==1
     isExtra = metadata['hostgal_specz']>0
@@ -52,16 +51,9 @@ totrain : are you creating a training data sample ? (include or not the target c
         meta_tofuse=metadata.loc[:,['object_id']]    
         
     # Then we fuse the metadata target column using the mutual ids 
-    data_filtered = pd.merge(data, metadata, on="object_id")
+    train = pd.merge(data, metadata, on="object_id")
 
-    print('After EXTRA-GALACTIC and DDF we have %s objects and %s mesures'%(len(np.unique(data_filtered['object_id'])),len(data_filtered)))
-    
-    #We add the PISN data to obtain our training sample
-    if addPISN==True:
-        train=pd.concat([PISN,data_filtered])
-        print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
-    else:
-        train=data_filtered
+    print('After EXTRA-GALACTIC and DDF we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
 
     
     #Filter the passband
