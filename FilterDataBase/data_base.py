@@ -11,7 +11,7 @@ def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=Tr
     
 
 #addPISN : add pair instability supernovae to the database
-#PISNfile : fused PISN data frame
+#PISNfile : fused PISN data frame. If addPISN is false, you can ignore this argument
 #data : the light curve data frame
 #metadata : the corresponding meta data frame
 #band : array like of all the passband you want to keep (ex/ [0,1,2,3,4,5] is to keep them all)
