@@ -7,7 +7,7 @@ import os
 import glob
 
 
-def create(data,metadata,band_used,name,addPISN=True,dff=True,extra=True,Dbool=False,complete=True,mini=5):
+def create(data,metadata,band_used,name,addPISN=True,dff=True,extra=True,Dbool=False,complete=True,mini=5,totrain=True):
 
 '''
 addPISN : add pair instability supernovae to the database
@@ -20,7 +20,7 @@ extra : only extra galactic objects ?
 Dbool : only detected boolean ?
 complete : keep only objects that have a minimum of 'mini' points in each chosen passband. 
 mini : minimum number of points in a passband (only the one chose in 'band') to be consider exploitable
-
+totrain : are you creating a training data sample ? (include or not the target column)
 '''
     
     #Add PISN extra data
@@ -44,8 +44,11 @@ mini : minimum number of points in a passband (only the one chose in 'band') to 
         metadata=metadata.loc[isExtra]
 
     # Keep only 2 columns before fusing
-    metadata=metadata.loc[:,['object_id','target']]
-
+    if totrain==True:
+        metadata=metadata.loc[:,['object_id','target']]
+    else :
+        meta_tofuse=metadata.loc[:,['object_id']]    
+        
     # Then we fuse the metadata target column using the mutual ids 
     data_filtered = pd.merge(data, metadata, on="object_id")
 
