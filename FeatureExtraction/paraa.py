@@ -12,7 +12,7 @@ def fit_scipy(time, flx, err_model,guess):
     result = least_squares(err_model, guess, args=(time, flux))
     return result.x
 
-# Create an array of parameter for each a given object (given it's ide <=> object_id)
+# Create an array of parameter for each object (given it's ide <=> object_id)
 # If the model used is bazin it automaticaly chooses t0 to be t_max and A to be flux_max
 # if there are not at least 2 points, it puts NaN instead of the parameters
 
@@ -42,18 +42,19 @@ def get_param(train,ide,err_model,guess,band_used):
 
 # This function will create the data frame containing all the parameters
 
-def create_table(objects,train,err_model,guess,feature,begin,band_used):
+def create_table(objects,train,err_model,guess,table,begin,band_used,save):
     
     start = timeit.default_timer()
     
     for i in range(begin,len(objects)):
         print(i,'/',len(objects), end="\r")
-        feature.loc[i,0:]=get_param(train,objects[i],err_model,guess,band_used)
-
+        table.loc[i,0:]=get_param(train,objects[i],err_model,guess,band_used)
+        table.to_pickle(save) 
+        
     stop = timeit.default_timer()
     print('Total time of the parametrisation %.1f sec'%(stop - start)) 
     
-    return feature
+    return table
 
 
 
@@ -77,15 +78,17 @@ def errfunc_poly(params,time, flux):
 
 
 
-def parametrise(train,nb_param,band_used,guess,err,begin,save):
+def parametrise(train,nb_param,band_used,guess,err,save,checkpoint='',begin=0):
     
 #train : lightcurves dataframe to parametrize
 #nb_param : number of parameter in your model
 #band_used : array of all band used (ex : [2,3,4])
 #guess : array of all initial guess for the parameters : guess [1, 0, 1, 30, -5] is good for bazin
 #err : the err function associated with your model
+#checkpoint : the table is saved each time a ligne is calculated, if a problem occured you can put the partially filled table as a check point. With the right 'begin' it avoids recalculating from start.
 #begin : first object to parametrise (in case previous parametrisation had a probleme)
 #save : location and name of the save
+
     
     objects = np.unique(train['object_id'])
 
@@ -95,18 +98,23 @@ def parametrise(train,nb_param,band_used,guess,err,begin,save):
 
     # We initialise a table of correct size but filled with 0
     
-    nb_passband=len(band_used)           
+    if begin == 0 :
+        nb_passband=len(band_used)           
 
-    df = {'object_id': objects,'target':target_list}
-    table = pd.DataFrame(data=df)    
-    for i in range(nb_passband*nb_param):
-        table[i]=0
+        df = {'object_id': objects,'target':target_list}
+        table = pd.DataFrame(data=df)    
+        for i in range(nb_passband*nb_param):
+            table[i]=0
+            
+    # Or we start from checkpoint if provided
+    else:
+        table=checkpoint
 
 
-    ## Update the 0 table
+    ## Update the table
                                                      
     np.seterr(all='ignore')
 
-    create_table(objects,train,err,guess,table,begin,band_used)                        
+    create_table(objects,train,err,guess,table,begin,band_used,save)                        
     table.to_pickle(save)          
     table
