@@ -22,6 +22,8 @@ complete : keep only objects that have a minimum of 'mini' points in each chosen
 mini : minimum number of points in a passband (only the one chose in 'band') to be consider exploitable
 totrain : are you creating a training data sample ? (include or not the target column)
 '''
+
+    print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)))
     
     #Add PISN extra data
     if addPISN==True:
@@ -52,9 +54,12 @@ totrain : are you creating a training data sample ? (include or not the target c
     # Then we fuse the metadata target column using the mutual ids 
     data_filtered = pd.merge(data, metadata, on="object_id")
 
+    print('After EXTRA-GALACTIC and DDF we have %s objects and %s mesures'%(len(np.unique(data_filtered['object_id'])),len(data_filtered)))
+    
     #We add the PISN data to obtain our training sample
     if addPISN==True:
         train=pd.concat([PISN,data_filtered])
+        print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
     else:
         train=data_filtered
 
@@ -66,23 +71,32 @@ totrain : are you creating a training data sample ? (include or not the target c
         to_fuse.append(train.loc[train['passband']==i])
         
     train=pd.concat(to_fuse)
+    print('After PASSBANDS we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))    
         
     # Filter the detected boolean    
     if Dbool==True:
         train = train[train['detected_bool']==1]
+        print('After DDB we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
         
     #List of all objects in the training sample
     objects = np.unique(train['object_id'])
 
     
     #For each object we normalize the mjd
+    start = timeit.default_timer()
     for i in objects:
         for j in band_used:
             object_mjd=train.loc[(train['object_id']==i)&(train['passband']==j),'mjd']
             train.loc[(train['object_id']==i)&(train['passband']==j),'mjd']= object_mjd-object_mjd.min()
+            
+    stop = timeit.default_timer()
+    print('Total time to normalise mjd %.1f sec'%(stop - start)) 
+
 
     # Filter only complete objects
     if complete==True:
+        
+        start = timeit.default_timer()
 
         objects_complet=[]
         for i in objects:
@@ -101,8 +115,9 @@ totrain : are you creating a training data sample ? (include or not the target c
             isComplete.append(train.iloc[i]['object_id'] in objects_complet)
 
         train=train[isComplete]
-
-
+        stop = timeit.default_timer()
+        print('Total time to check completness %.1f sec'%(stop - start)) 
+        print('After COMPLETNESS we are left with %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
 
 
     train.to_pickle("%s.pkl"%name)
