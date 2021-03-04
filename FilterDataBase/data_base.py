@@ -7,16 +7,25 @@ import os
 import glob
 
 
-def create(data,metadata,band_used,name,dff=True,extra=True,Dbool=False,mini=5,complete=True,addPISN=True):
+def create(data,metadata,band_used,name,addPISN=True,dff=True,extra=True,Dbool=False,complete=True,mini=5):
 
+'''
+addPISN : add pair instability supernovae to the database
+data : the light curve data frame
+metadata : the corresponding meta data frame
+band : array like of all the passband you want to keep (ex/ [0,1,2,3,4,5] is to keep them all)
+name : name given to the saved .pkl file at the end
+dff : only deep drilling field ?
+extra : only extra galactic objects ?
+Dbool : only detected boolean ?
+complete : keep only objects that have a minimum of 'mini' points in each chosen passband. 
+mini : minimum number of points in a passband (only the one chose in 'band') to be consider exploitable
 
-    ##Base data
-    #data = pd.read_csv("plasticc_train_lightcurves.csv")
-    ##Associated metadata
-    #metadata = pd.read_csv("plasticc_train_metadata.csv")
+'''
     
+    #Add PISN extra data
     if addPISN==True:
-        #PISN extra data
+        
         all_filenames = [i for i in glob.glob(f"PLAsTiCC_PISN/PISN/*{'.csv'}")]
         PISN = pd.concat([pd.read_csv(f) for f in all_filenames])
         PISN=PISN.drop("Unnamed: 0",axis=1)
@@ -28,61 +37,51 @@ def create(data,metadata,band_used,name,dff=True,extra=True,Dbool=False,mini=5,c
     
 
     #We filter the initial metadata
+    if (dff==True):
+        metadata = metadata.loc[isDDF]
 
-    if (dff==True) & (extra==True):
-        metadata2=metadata.loc[isDDF&isExtra]
-    elif (dff==True) & (extra==False):
-        metadata2=metadata.loc[isDDF]
-    elif (dff==False) & (extra==True):
-        metadata2=metadata.loc[isExtra]
-    elif (dff==False) & (extra==False):
-        metadata2=metadata
+    if (extra==True):
+        metadata=metadata.loc[isExtra]
 
-    meta_tofuse=metadata2.loc[:,['object_id','target']]
+    # Keep only 2 columns before fusing
+    metadata=metadata.loc[:,['object_id','target']]
 
     # Then we fuse the metadata target column using the mutual ids 
-    data_filtered = pd.merge(data, meta_tofuse, on="object_id")
+    data_filtered = pd.merge(data, metadata, on="object_id")
 
+    #We add the PISN data to obtain our training sample
     if addPISN==True:
-        #We add the PISN data to obtain our training sample
         train=pd.concat([PISN,data_filtered])
     else:
         train=data_filtered
 
     
-        #Filter the passband right away
+    #Filter the passband
+        
     to_fuse=[]
     for i in band_used:
         to_fuse.append(train.loc[train['passband']==i])
-    
-    fused=to_fuse[0]
-    for i in range (len(band_used)-1):
-        fused=pd.concat([fused,to_fuse[i+1]])
-    train=fused
-
+        
+    train=pd.concat(to_fuse)
+        
+    # Filter the detected boolean    
+    if Dbool==True:
+        train = train[train['detected_bool']==1]
         
     #List of all objects in the training sample
     objects = np.unique(train['object_id'])
 
-    target_types = np.hstack([np.unique(train['target']), [999]])
-
+    
     #For each object we normalize the mjd
     for i in objects:
         for j in band_used:
             object_mjd=train.loc[(train['object_id']==i)&(train['passband']==j),'mjd']
             train.loc[(train['object_id']==i)&(train['passband']==j),'mjd']= object_mjd-object_mjd.min()
 
-    if Dbool==True:
-        train = train[train['detected_bool']==1]
-
-
+    # Filter only complete objects
     if complete==True:
-    #mini #Nombre minimum de points pour une passband
-
-        objects = np.unique(train['object_id'])
 
         objects_complet=[]
-
         for i in objects:
             a = train.loc[train['object_id']==i]
             bandOK=0
