@@ -14,11 +14,13 @@ Since we expect LSST to discover theoretical objects that we've never observed b
 It is in this context that this github takes place. We will focus on identifying Pair Instability Supernovae (called PISN) in particular. Now that the testing sample is public, we will use the PISN data to train directly a machine learning model.
 
 To begin with, you need to have the PLAsTiCC data set. It is downladable here : https://zenodo.org/record/2539456#.YED0lP4o9hE
+
 For both testing and training you will find a data and a metadata file. The data file contains the light curves themselves, while metadata contains additionnal informations about the objects.
 The training is made of 2 files : "plasticc_train_lightcurves.csv" and "plasticc_train_metadata.csv" 
 The testing is made of 12 files : 11 "plasticc_test_lightcurves_xx.csv" and "plasticc_test_metadata.csv"
 
 In addition I used the data of all PISN as separate files here :
+
 In the folder FilterDataBase you can find a notebook 'FusePISN.ipynb' that fuses all PISN files into one dataframe.
 
 Once all files are downloaded we are ready. We can distinguish three main step : Filter ; Parametrise ; Predict
