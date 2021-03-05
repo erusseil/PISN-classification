@@ -26,12 +26,7 @@ def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=Tr
 
     print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)))
     
-    #We add the PISN data to obtain our training sample
-    if addPISN==True:
-        data=pd.concat([PISNdf,data])
-        print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)))
-  
-        
+      
     #Conditions on the deep drilling field and the redshift
     isDDF = metadata['ddf_bool']==1
     isExtra = metadata['hostgal_specz']>0
@@ -54,6 +49,11 @@ def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=Tr
     train = pd.merge(data, metadata, on="object_id")
 
     print('After EXTRA-GALACTIC and DDF we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
+    
+    #We add the PISN data to obtain our training sample
+    if addPISN==True:
+        train=pd.concat([PISNdf,train])
+        print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
 
     
     #Filter the passband
