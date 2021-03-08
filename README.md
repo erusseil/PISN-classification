@@ -55,8 +55,6 @@ The first thing we usually do with light curves is to translate the time to 0. T
  
  mini : minimum number of points in a passband (only the one chose in 'band') to be consider exploitable
  
- totrain : are you creating a training data sample ? (include or not the target column)
- 
  norm : normalise the 'mjd' column by translating it to zero ?
   
 ## Parametrise dataset
