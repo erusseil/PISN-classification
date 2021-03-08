@@ -40,8 +40,8 @@ def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=Tr
         metadata=metadata.loc[isExtra]
 
     # Keep only 2 columns before fusing
-        metadata=metadata.loc[:,['object_id','true_target']]
-        metadata=meta_tofuse.rename(columns={"true_target": "target"})
+    metadata=metadata.loc[:,['object_id','true_target']]
+    metadata=meta_tofuse.rename(columns={"true_target": "target"})
         
     # Then we fuse the metadata target column using the mutual ids 
     train = pd.merge(data, metadata, on="object_id")
