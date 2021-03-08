@@ -7,7 +7,7 @@ import os
 import glob
 
 
-def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=True,Dbool=False,complete=True,mini=5,totrain=True):
+def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=True,Dbool=False,complete=True,mini=5,totrain=True,norm=True):
     
 
 #addPISN : add pair instability supernovae to the database
@@ -73,16 +73,16 @@ def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=Tr
     #List of all objects in the training sample
     objects = np.unique(train['object_id'])
 
-    
-    #For each object we normalize the mjd
-    start = timeit.default_timer()
-    for i in objects:
-        for j in band_used:
-            object_mjd=train.loc[(train['object_id']==i)&(train['passband']==j),'mjd']
-            train.loc[(train['object_id']==i)&(train['passband']==j),'mjd']= object_mjd-object_mjd.min()
-            
-    stop = timeit.default_timer()
-    print('Total time to normalise mjd %.1f sec'%(stop - start)) 
+    if norm ==True:
+        #For each object we normalize the mjd
+        start = timeit.default_timer()
+        for i in objects:
+            for j in band_used:
+                object_mjd=train.loc[(train['object_id']==i)&(train['passband']==j),'mjd']
+                train.loc[(train['object_id']==i)&(train['passband']==j),'mjd']= object_mjd-object_mjd.min()
+
+        stop = timeit.default_timer()
+        print('Total time to normalise mjd %.1f sec'%(stop - start)) 
 
 
     # Filter only complete objects
