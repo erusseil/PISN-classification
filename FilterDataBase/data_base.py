@@ -7,7 +7,7 @@ import os
 import glob
 
 
-def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=True,Dbool=False,complete=True,mini=5,totrain=True,norm=True):
+def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=True,Dbool=False,complete=True,mini=5,norm=True):
     
 
 #addPISN : add pair instability supernovae to the database
@@ -21,7 +21,7 @@ def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=Tr
 #Dbool : only detected boolean ?
 #complete : keep only objects that have a minimum of 'mini' points in each chosen passband. 
 #mini : minimum number of points in a passband (only the one chose in 'band') to be consider exploitable
-#totrain : are you creating a training data sample ? (include or not the target column)
+#norm : normalise mjd ?
 
 
     print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)))
@@ -40,10 +40,8 @@ def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=Tr
         metadata=metadata.loc[isExtra]
 
     # Keep only 2 columns before fusing
-    if totrain==True:
-        metadata=metadata.loc[:,['object_id','target']]
-    else :
-        meta_tofuse=metadata.loc[:,['object_id']]    
+        metadata=metadata.loc[:,['object_id','true_target']]
+        metadata=meta_tofuse.rename(columns={"true_target": "target"})
         
     # Then we fuse the metadata target column using the mutual ids 
     train = pd.merge(data, metadata, on="object_id")
