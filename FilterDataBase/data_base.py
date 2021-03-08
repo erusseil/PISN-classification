@@ -29,7 +29,7 @@ def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=Tr
       
     #Conditions on the deep drilling field and the redshift
     isDDF = metadata['ddf_bool']==1
-    isExtra = metadata['hostgal_specz']>0
+    isExtra = metadata['true_z']>0
     
 
     #We filter the initial metadata
