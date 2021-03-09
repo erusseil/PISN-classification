@@ -5,12 +5,16 @@ import pandas as pd
 import timeit
 import os
 import glob
+from sklearn.model_selection import train_test_split
 
 
-def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=True,Dbool=False,complete=True,mini=5,norm=True):
+def create(data,metadata,band_used,
+           name,PISNdf='',ratioPISN=-1,
+           training=True,dff=True,
+           extra=True,Dbool=False,complete=True,
+           mini=5,norm=True):
     
 
-#addPISN : add pair instability supernovae to the database
 #PISNfile : fused PISN data frame. If addPISN is false, you can ignore this argument
 #data : the light curve data frame
 #metadata : the corresponding meta data frame
@@ -22,7 +26,9 @@ def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=Tr
 #complete : keep only objects that have a minimum of 'mini' points in each chosen passband. 
 #mini : minimum number of points in a passband (only the one chose in 'band') to be consider exploitable
 #norm : normalise mjd ?
-
+#ratioPISN : between 0 and 1, gives the number of PISN to add to a training sample OR to substract to a testing sample. 
+#If ratioPISN = -1 then all PISN we be added to a training sample and no PISN will be substracted to a testing sample
+#training : True for a training sample, False for a testing sample. specifies the data set for the PISN to be added
 
     print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)))
     
@@ -49,9 +55,30 @@ def create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=Tr
     print('After EXTRA-GALACTIC and DDF we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
     
     #We add the PISN data to obtain our training sample
-    if addPISN==True:
-        train=pd.concat([PISNdf,train])
-        print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
+    
+    if ratioPISN==-1:             # if -1 we add all to training or nothing to testing
+        if training==True:           
+            train=pd.concat([PISNdf,train])
+            print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
+            
+    elif (0<=ratioPISN<=1):       # if 0<ratioPISN<1 we add ratioPISN to training or 1-ratioPISN to testing
+        
+        obj_PISN=(np.unique(PISNdf['object_id']))
+        PISN_split=train_test_split(obj_PISN,test_size=ratioPISN,random_state=1)  
+        
+        if training==True:
+            PISNdf_split= pd.DataFrame(data={'object_id': PISN_split[1]})
+        if training==False:
+            train=train[train['target']!=994]
+            PISNdf_split= pd.DataFrame(data={'object_id': PISN_split[0]})
+            
+        PISNdf = pd.merge(PISNdf_split, PISNdf, on="object_id")
+        train = pd.concat([PISNdf,train])
+        print('After we add/remove PISN we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
+        
+    else:
+        print('ERROR RATIO PISN VALUE')
+            
 
     
     #Filter the passband
