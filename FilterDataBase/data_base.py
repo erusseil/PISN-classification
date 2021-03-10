@@ -30,8 +30,10 @@ def create(data,metadata,band_used,
 #If ratioPISN = -1 then all PISN we be added to a training sample and no PISN will be substracted to a testing sample
 #training : True for a training sample, False for a testing sample. specifies the data set for the PISN to be added
 
+    f = open("%s.txt"%name, "a") # We will save the print in a txt file
+
+    print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)), file=f)
     print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)))
-    
       
     #Conditions on the deep drilling field and the redshift
     isDDF = metadata['ddf_bool']==1
@@ -52,14 +54,19 @@ def create(data,metadata,band_used,
     # Then we fuse the metadata target column using the mutual ids 
     train = pd.merge(data, metadata, on="object_id")
 
-    print('After EXTRA-GALACTIC and DDF we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
+    print('\nAfter EXTRA-GALACTIC and DDF we have %s objects and %s mesures\n'%(len(np.unique(train['object_id'])),len(train)))
+    print('\nAfter EXTRA-GALACTIC and DDF we have %s objects and %s mesures\n'%(len(np.unique(train['object_id'])),len(train)), file=f)
     
     #We add the PISN data to obtain our training sample
     
     if ratioPISN==-1:             # if -1 we add all to training or nothing to testing
         if training==True:           
             train=pd.concat([PISNdf,train])
+            
             print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
+            print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)), file=f)
+            print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n')
+            print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
             
     elif (0<=ratioPISN<=1):       # if 0<ratioPISN<1 we add ratioPISN to training or 1-ratioPISN to testing
         
@@ -75,8 +82,12 @@ def create(data,metadata,band_used,
         PISNdf = pd.merge(PISNdf_split, PISNdf, on="object_id")
         train = pd.concat([PISNdf,train])
         print('After we add/remove PISN we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
+        print('After we add/remove PISN we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)), file=f)
+        print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
+        print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n')
         
     else:
+        print('ERROR RATIO PISN VALUE', file=f)
         print('ERROR RATIO PISN VALUE')
             
 
@@ -88,12 +99,18 @@ def create(data,metadata,band_used,
         to_fuse.append(train.loc[train['passband']==i])
         
     train=pd.concat(to_fuse)
-    print('After PASSBANDS we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))    
+    print('After PASSBANDS we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)), file=f)
+    print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
+    print('After PASSBANDS we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
+    print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n')
         
     # Filter the detected boolean    
     if Dbool==True:
         train = train[train['detected_bool']==1]
+        print('After DDB we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)), file=f)
+        print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
         print('After DDB we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
+        print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n')
         
     #List of all objects in the training sample
     objects = np.unique(train['object_id'])
@@ -107,6 +124,7 @@ def create(data,metadata,band_used,
                 train.loc[(train['object_id']==i)&(train['passband']==j),'mjd']= object_mjd-object_mjd.min()
 
         stop = timeit.default_timer()
+        print('Total time to normalise mjd %.1f sec'%(stop - start), file=f)
         print('Total time to normalise mjd %.1f sec'%(stop - start)) 
 
 
@@ -133,8 +151,12 @@ def create(data,metadata,band_used,
 
         train=train[isComplete]
         stop = timeit.default_timer()
+        print('Total time to check completness %.1f sec'%(stop - start), file=f) 
+        print('After COMPLETNESS we are left with %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)), file=f)
+        print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset', file=f)
         print('Total time to check completness %.1f sec'%(stop - start)) 
         print('After COMPLETNESS we are left with %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
+        print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset')
 
-
+    f.close()
     train.to_pickle("%s.pkl"%name)
