@@ -19,7 +19,7 @@ For both testing and training you will find a data and a metadata file. The data
 The training is made of 2 files : "plasticc_train_lightcurves.csv" and "plasticc_train_metadata.csv" 
 The testing is made of 12 files : 11 "plasticc_test_lightcurves_xx.csv" and "plasticc_test_metadata.csv"
 
-In addition I used the data of all PISN as separate files here :
+In addition I used the data of all PISN as separate files here : https://drive.google.com/file/d/16_G2IjpJVdiv6GT0fs61-C_NuhHCPH8E/view
 
 In the folder FilterDataBase you can find a notebook 'FusePISN.ipynb' that fuses all PISN files into one dataframe.
 
@@ -27,9 +27,10 @@ Once all files are downloaded we are ready. We can distinguish three main step :
 
 ## Filter dataset
 
-The first thing we usually do with light curves is to translate the time to 0. This mean that we set the time of the first point to be 0, and we apply the same translation to all the points on the curve. Also we might want to use only specific light curves and this is why original dataset needs to be transformed before using it. In the folder FilterDataBase there is the script "data_base.py" that allows that . It contains a functions 'create' that will return you a clean filtered dataset.
+The first thing we usually do with light curves is to translate the time to 0. This mean that we set the time of the first point to be 0, and we apply the same translation to all the points on the curve. Also we might want to use only specific light curves and this is why original dataset needs to be transformed before using it. In the folder FilterDataBase there is the script "data_base.py" that allows that . It contains a functions 'create' that will return you a clean filtered dataset. At each step informations about the filters applied and remaining objects are printed. All those informations are saved in a txt file.
 
-  create(data,metadata,band_used,name,PISNdf='',addPISN=True,dff=True,extra=True,Dbool=False,complete=True,mini=5,totrain=True):
+
+def create(data,metadata,band_used,name,PISNdf='',ratioPISN=-1,training=True,dff=True,extra=True,Dbool=False,complete=True,mini=5,norm=True):
  
  
  
@@ -37,9 +38,12 @@ The first thing we usually do with light curves is to translate the time to 0. T
  
  metadata : the corresponding meta data frame
  
- addPISN : add pair instability supernovae to the database ?
- 
  PISNfile : PISN data frame to add. If addPISN is false, you can ignore this argument
+ 
+ ratioPISN : between 0 and 1, gives the number of PISN to add to a training sample OR to substract to a testing sample. 
+ If ratioPISN = -1 then all PISN we be added to a training sample and no PISN will be substracted to a testing sample
+ 
+ training : True for a training sample, False for a testing sample. It specifies the data set for the PISN to be added
  
  band : array like of all the passband you want to keep (ex/ [0,1,2,3,4,5] is to keep them all)
  
@@ -56,6 +60,7 @@ The first thing we usually do with light curves is to translate the time to 0. T
  mini : minimum number of points in a passband (only the one chose in 'band') to be consider exploitable
  
  norm : normalise the 'mjd' column by translating it to zero ?
+
   
 ## Parametrise dataset
 
