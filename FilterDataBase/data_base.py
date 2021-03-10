@@ -25,7 +25,7 @@ def create(data,metadata,band_used,
 #Dbool : only detected boolean ?
 #complete : keep only objects that have a minimum of 'mini' points in each chosen passband. 
 #mini : minimum number of points in a passband (only the one chose in 'band') to be consider exploitable
-#norm : normalise mjd ?
+#norm : normalise the 'mjd' column by translating it to zero ?
 #ratioPISN : between 0 and 1, gives the number of PISN to add to a training sample OR to substract to a testing sample. 
 #If ratioPISN = -1 then all PISN we be added to a training sample and no PISN will be substracted to a testing sample
 #training : True for a training sample, False for a testing sample. specifies the data set for the PISN to be added
