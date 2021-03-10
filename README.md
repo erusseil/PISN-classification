@@ -27,7 +27,7 @@ Once all files are downloaded we are ready. We can distinguish three main step :
 
 ## Filter dataset
 
-The first thing we usually do with light curves is to translate the time to 0. This mean that we set the time of the first point to be 0, and we apply the same translation to all the points on the curve. Also we might want to use only specific light curves and this is why original dataset needs to be transformed before using it. In the folder FilterDataBase there is the script "data_base.py" that allows that . It contains a functions 'create' that will return you a clean filtered dataset.
+The first thing we usually do with light curves is to translate the time to 0. This mean that we set the time of the first point to be 0, and we apply the same translation to all the points on the curve. Also we might want to use only specific light curves and this is why original dataset needs to be transformed before using it. In the folder FilterDataBase there is the script "data_base.py" that allows that . It contains a functions 'create' that will return you a clean filtered dataset. At each step informations about the filters applied and remaining objects are printed. All those informations are saved in a txt file.
 
 
 def create(data,metadata,band_used,name,PISNdf='',ratioPISN=-1,training=True,dff=True,extra=True,Dbool=False,complete=True,mini=5,norm=True):
