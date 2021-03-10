@@ -19,7 +19,7 @@ For both testing and training you will find a data and a metadata file. The data
 The training is made of 2 files : "plasticc_train_lightcurves.csv" and "plasticc_train_metadata.csv" 
 The testing is made of 12 files : 11 "plasticc_test_lightcurves_xx.csv" and "plasticc_test_metadata.csv"
 
-In addition I used the data of all PISN as separate files here :
+In addition I used the data of all PISN as separate files here : https://drive.google.com/file/d/16_G2IjpJVdiv6GT0fs61-C_NuhHCPH8E/view
 
 In the folder FilterDataBase you can find a notebook 'FusePISN.ipynb' that fuses all PISN files into one dataframe.
 
