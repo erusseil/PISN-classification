@@ -30,6 +30,8 @@ def create(data,metadata,band_used,
 #If ratioPISN = -1 then all PISN we be added to a training sample and no PISN will be substracted to a testing sample
 #training : True for a training sample, False for a testing sample. specifies the data set for the PISN to be added
 
+    f = open("%s.txt"%name, "w") # Clear the previous print save
+    f.close()
     f = open("%s.txt"%name, "a") # We will save the print in a txt file
 
     print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)), file=f)
