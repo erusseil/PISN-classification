@@ -19,7 +19,7 @@ def create(data, metadata, band_used,
     Parameters
     ----------
     PISNfile: pd.DataFrame
-        Fused PISN data frame. Only used if addPISN == True. 
+        Fused PISN data frame. Only used if ratioPISN != -2 
     data: pd.DataFrame 
         The light curve data from PLAsTiCC zenodo files.
     metadata: pd.DataFrame 
@@ -49,10 +49,11 @@ def create(data, metadata, band_used,
         Fraction of PISN to be added to training 
         OR to be substracted from test. If -1, all PISN will
         be added to training sample and none will be substracted
-        from test. Default is -1.
+        from test. If -2, nothing will be done (usable if no PISN file 
+        are inputed). Default is -1.
     training: bool (optional)
-        If True, add PISN to the training sample, otherwise added it to
-        the test sample. Default is True.
+        If True, add ratioPISN to the training sample, otherwise add ]
+        1-ratioPISN to the test sample. Default is True.
         
         
     Returns
@@ -90,7 +91,7 @@ def create(data, metadata, band_used,
     
     #We add the PISN data to obtain our training sample
     
-    if ratioPISN == -1:             # if -1 we add all to training and nothing to testing
+    if ratioPISN == -1:             # if -1 we add all to training and let the testing as is
         if training == True:           
             train = pd.concat([PISNdf, train])
             
@@ -102,7 +103,11 @@ def create(data, metadata, band_used,
     elif (0 <= ratioPISN <= 1):       # if 0<ratioPISN<1 we add ratioPISN to training or 1-ratioPISN to testing
         
         obj_PISN = (np.unique(PISNdf['object_id']))
-        PISN_split = train_test_split(obj_PISN, test_size=ratioPISN, random_state=1)  
+        
+        if ratioPISN == 0:
+            PISN_split = obj_PISN
+        else :    
+            PISN_split = train_test_split(obj_PISN, test_size=ratioPISN, random_state=1)  
         
         if training==True:
             PISNdf_split = pd.DataFrame(data={'object_id': PISN_split[1]})
@@ -118,6 +123,9 @@ def create(data, metadata, band_used,
         print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
         print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n')
         
+    elif (ratioPISN == -2): # Does nothing, ignore PISN
+        print('PISN ignored', file=f)
+        print('PISN ignored')
     else:
         print('ERROR RATIO PISN VALUE', file=f)
         print('ERROR RATIO PISN VALUE')
