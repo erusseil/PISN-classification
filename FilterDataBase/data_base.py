@@ -84,21 +84,21 @@ def create(data, metadata, band_used,
     metadata = metadata.rename(columns={"true_target": "target"})
         
     # Then we fuse the metadata target column using the mutual ids 
-    train = pd.merge(data, metadata, on="object_id")
+    clean = pd.merge(data, metadata, on="object_id")
 
-    print('\nAfter EXTRA-GALACTIC and DDF we have %s objects and %s mesures\n'%(len(np.unique(train['object_id'])),len(train)))
-    print('\nAfter EXTRA-GALACTIC and DDF we have %s objects and %s mesures\n'%(len(np.unique(train['object_id'])),len(train)), file=f)
+    print('\nAfter EXTRA-GALACTIC and DDF we have %s objects and %s mesures\n'%(len(np.unique(clean['object_id'])),len(clean)))
+    print('\nAfter EXTRA-GALACTIC and DDF we have %s objects and %s mesures\n'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
     
     #We add the PISN data to obtain our training sample
     
     if ratioPISN == -1:             # if -1 we add all to training and let the testing as is
         if training == True:           
-            train = pd.concat([PISNdf, train])
+            clean = pd.concat([PISNdf, clean])
             
-            print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
-            print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)), file=f)
-            print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n')
-            print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
+            print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
+            print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
+            print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
+            print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
             
     elif (0 <= ratioPISN <= 1):       # if 0<ratioPISN<1 we add ratioPISN to training or 1-ratioPISN to testing
         
@@ -107,21 +107,21 @@ def create(data, metadata, band_used,
         if ratioPISN == 0:
             PISN_split = obj_PISN
         else :    
-            PISN_split = train_test_split(obj_PISN, test_size=ratioPISN, random_state=1)  
+            PISN_split = clean_test_split(obj_PISN, test_size=ratioPISN, random_state=1)  
         
         if training==True:
             PISNdf_split = pd.DataFrame(data={'object_id': PISN_split[1]})
         else:
-            train = train[train['target'] != 994]
+            clean = clean[clean['target'] != 994]
             PISNdf_split = pd.DataFrame(data = {'object_id': PISN_split[0]})
             
         PISNdf = pd.merge(PISNdf_split, PISNdf, on="object_id")
-        train = pd.concat([PISNdf,train])
+        clean = pd.concat([PISNdf,clean])
 
-        print('After we add/remove PISN we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
-        print('After we add/remove PISN we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)), file=f)
-        print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
-        print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n')
+        print('After we add/remove PISN we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
+        print('After we add/remove PISN we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
+        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
+        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
         
     elif (ratioPISN == -2): # Does nothing, ignore PISN
         print('PISN ignored', file=f)
@@ -136,32 +136,32 @@ def create(data, metadata, band_used,
         
     to_fuse=[]
     for i in band_used:
-        to_fuse.append(train.loc[train['passband']==i])
+        to_fuse.append(clean.loc[clean['passband']==i])
         
-    train=pd.concat(to_fuse)
-    print('After PASSBANDS we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)), file=f)
-    print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
-    print('After PASSBANDS we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
-    print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n')
+    clean=pd.concat(to_fuse)
+    print('After PASSBANDS we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
+    print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
+    print('After PASSBANDS we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
+    print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
         
     # Filter the detected boolean    
     if Dbool==True:
-        train = train[train['detected_bool']==1]
-        print('After DDB we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)), file=f)
-        print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
-        print('After DDB we have %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
-        print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset\n')
+        clean = clean[clean['detected_bool']==1]
+        print('After DDB we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
+        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
+        print('After DDB we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
+        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
         
     #List of all objects in the training sample
-    objects = np.unique(train['object_id'])
+    objects = np.unique(clean['object_id'])
 
     if norm ==True:
         #For each object we normalize the mjd
         start = timeit.default_timer()
         for i in objects:
             for j in band_used:
-                object_mjd = train.loc[(train['object_id'] == i) & (train['passband'] == j),'mjd']
-                train.loc[(train['object_id'] == i) & (train['passband'] == j),'mjd'] = object_mjd-object_mjd.min()
+                object_mjd = clean.loc[(clean['object_id'] == i) & (clean['passband'] == j),'mjd']
+                clean.loc[(clean['object_id'] == i) & (clean['passband'] == j),'mjd'] = object_mjd-object_mjd.min()
 
         stop = timeit.default_timer()
         print('Total time to normalise mjd %.1f sec'%(stop - start), file=f)
@@ -175,7 +175,7 @@ def create(data, metadata, band_used,
 
         objects_complet=[]
         for i in objects:
-            a = train.loc[train['object_id'] == i]
+            a = clean.loc[clean['object_id'] == i]
             bandOK = 0
             for j in band_used:
                 nb_pts = (a['passband'] == j).sum()
@@ -186,17 +186,17 @@ def create(data, metadata, band_used,
                 objects_complet.append(i)
 
         isComplete=[]
-        for i in range(len(train['object_id'])):
-            isComplete.append(train.iloc[i]['object_id'] in objects_complet)
+        for i in range(len(clean['object_id'])):
+            isComplete.append(clean.iloc[i]['object_id'] in objects_complet)
 
-        train=train[isComplete]
+        clean=clean[isComplete]
         stop = timeit.default_timer()
         print('Total time to check completness %.1f sec'%(stop - start), file=f) 
-        print('After COMPLETNESS we are left with %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)), file=f)
-        print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset', file=f)
+        print('After COMPLETNESS we are left with %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
+        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n\n', file=f)
         print('Total time to check completness %.1f sec'%(stop - start)) 
-        print('After COMPLETNESS we are left with %s objects and %s mesures'%(len(np.unique(train['object_id'])),len(train)))
-        print('--> There are ',len(np.unique(train.loc[train['target']==994,'object_id'])),'PISN in the dataset')
+        print('After COMPLETNESS we are left with %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
+        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n\n')
 
     f.close()
-    train.to_pickle("%s.pkl"%name)
+    clean.to_pickle("%s.pkl"%name)
