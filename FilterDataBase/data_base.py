@@ -61,10 +61,18 @@ def create(data, metadata, band_used,
     -------
     
     """
-    
+
     f = open("%s.txt"%name, "w") # Clear the previous print save
     f.close()
     f = open("%s.txt"%name, "a") # We will save the print in a txt file
+    
+    if training == True :
+        print("\n CREATION OF THE TRAINING DATA BASE\n ", file=f)
+        print("\n CREATION OF THE TRAINING DATA BASE\n ")
+    else :
+        print("\n CREATION OF THE TESTING DATA BASE\n ", file=f)
+        print("\n CREATION OF THE TESTING DATA BASE\n ")
+    
 
     print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)), file=f)
     print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)))
@@ -194,10 +202,10 @@ def create(data, metadata, band_used,
         stop = timeit.default_timer()
         print('Total time to check completness %.1f sec'%(stop - start), file=f) 
         print('After COMPLETNESS we are left with %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
-        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n\n', file=f)
+        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset', file=f)
         print('Total time to check completness %.1f sec'%(stop - start)) 
         print('After COMPLETNESS we are left with %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
-        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n\n')
+        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset')
 
     f.close()
     clean.to_pickle("%s.pkl"%name)
