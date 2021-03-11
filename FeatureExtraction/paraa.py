@@ -15,10 +15,11 @@ def fit_scipy(time, flx, err_model,guess):
         exploratory variable (time of observation)
     flx: np.array
         response variable (measured flux)
-    err_model:  XXX
-        XXX
-    guess: XXX
-        XXX
+    err_model:  func 
+        The err function associated with your model
+    guess: np.array
+        Initial guess for parameters values. 
+        [1, 0, 1, 30, -5] is good for Bazin.
      
     Returns
     -------
@@ -42,14 +43,15 @@ def get_param(train, ide, err_model, guess, band_used):
     
     Parameters
     ----------
-    train: XXX
-        XXXXX
-    ide: XXXX
-        XXXXX
-    err_model: XXX
-        XXXX
-    guess: XXXX
-        XXXX
+    train: pd.DataFrame
+        Lightcurves dataframe to parametrize.
+    ide: int
+        'Object_id' of the object to parametrize 
+    err_model: func 
+        The err function associated with your model
+    guess: np.array
+        Initial guess for parameters values. 
+        [1, 0, 1, 30, -5] is good for Bazin.
     band_used: list
        List of all the passband you want to keep, using PLAsTiCC
        zenodo designations [0,1,2,3,4,5].
@@ -90,22 +92,22 @@ def create_table(objects,train,err_model,guess,table,begin,band_used,save):
     ----------
     objects: list
         List of objects ids.
-    train: XXX
-        XXXX
+    train: pd.DataFrame
+        Lightcurves dataframe to parametrize.
     err_model: func
         The err function associated with your model.
     guess: np.array
         Initial guess for parameters values. 
         [1, 0, 1, 30, -5] is good for Bazin.
-    table: XXX
-        XXXX
-    begin: XXX
-        XXX
+    table: pd.DataFrame
+        Correctly sized table to which we write the parameters
+    begin: int
+        Start table construction at this line 
     band_used: list
        List of all the passband you want to keep, using PLAsTiCC
        zenodo designations [0,1,2,3,4,5].
-    save: XXX
-        XXXX
+    save: str
+        location and name of the save
         
     Returns
     -------
@@ -249,8 +251,8 @@ def parametrise(train, nb_param, band_used, guess, err, save,
         if a problem occured you can put the partially filled 
         table as a check point. With the right 'begin' it 
         avoids recalculating from start.
-    begin : XXXXX 
-        first object to parametrise (in case previous parametrisation had a probleme)
+    begin : int
+        Start table construction at this line 
     save: str
         location and name of the save
     """
