@@ -6,12 +6,14 @@ The Large Synoptic Survey Telescope (LSST) will soon be operational and will pro
 
 What if we want to predict the type of object that we are looking at only using it's light curve ? For this we need to train a machine learning algorithm with a lot of data. Fortunately a simulation of the data that LSST could produce in 3 years exists : it is called PLAsTiCC.
 
-It was original created for a Kaggle challenge in 2018. More here details here : https://www.kaggle.com/c/PLAsTiCC-2018/overview
+It was original created for a Kaggle challenge in 2018. More here details [here](https://www.kaggle.com/c/PLAsTiCC-2018/overview).
 
-The training sample was composed of about 30 000 objects and the testing sample was composed of about 3 500 000 objects. The difficulty comes from this huge difference of size between the samples. 
-Since we expect LSST to discover theoretical objects that we've never observed before, some were added in the testing sample (only !). Algorithms were expected to classify correctly objects that were in both samples and to classify as 'unknown' objects that were only in the testing sample. In reality unseen objects were not classify as "unknown", and those exotic objects could slip between our hands if we are not capable of classifying them !
+The training sample was composed of 7,846 objects considered to be spectroscopically confirmed and the testing sample was composed of about 3,492,888 objects, corresponding to a photometric-only sample. The difficulty comes from the statistical differences between these two data sets. Training and test samples are not representative of each other, thus breaking the initial assumptions from supervised machine learning. 
 
-It is in this context that this github takes place. We will focus on identifying Pair Instability Supernovae (called PISN) in particular. Now that the testing sample is public, we will use the PISN data to train directly a machine learning model.
+Moreover, the data is not only statistically different, training and test samples also hold different number of classes (or populations). 
+Since LSST will be more sensitive than any other telescope in history, it is reasonable to expect that it will detect objects that we've never observed before. In order to mimic this situation, a few very rare objects were added to the PLAsTiCC testing sample (only !). The organizers of PLAsTiCC hoped that participants would use some kind of anomaly detection technique to mark as 'unknown' objects that were only in the testing sample. This task did not attract many participants. However, this is a very important task and if we fail to identify previously unknown objects, new physics could slip between our hands !
+
+It is in this context that this project takes place. We will focus on identifying Pair Instability Supernovae (called PISN) in particular. This is a rare type of transient event which  was not present in the PLAsTiCC training sample. Now that the testing sample is public, we will use the PISN data to train directly a machine learning model. 
 
 To begin with, you need to have the PLAsTiCC data set. It is downladable here : https://zenodo.org/record/2539456#.YED0lP4o9hE
 
@@ -19,7 +21,9 @@ For both testing and training you will find a data and a metadata file. The data
 The training is made of 2 files : "plasticc_train_lightcurves.csv" and "plasticc_train_metadata.csv" 
 The testing is made of 12 files : 11 "plasticc_test_lightcurves_xx.csv" and "plasticc_test_metadata.csv"
 
-In addition I used the data of all PISN as separate files here : https://drive.google.com/file/d/16_G2IjpJVdiv6GT0fs61-C_NuhHCPH8E/view
+In addition I used the data of all PISN as separate files [here](https://drive.google.com/file/d/16_G2IjpJVdiv6GT0fs61-C_NuhHCPH8E/view)
+
+## Join all PISN data
 
 In the folder FilterDataBase you can find a notebook 'FusePISN.ipynb' that fuses all PISN files into one dataframe.
 
@@ -29,37 +33,6 @@ Once all files are downloaded we are ready. We can distinguish three main step :
 
 The first thing we usually do with light curves is to translate the time to 0. This mean that we set the time of the first point to be 0, and we apply the same translation to all the points on the curve. Also we might want to use only specific light curves and this is why original dataset needs to be transformed before using it. In the folder FilterDataBase there is the script "data_base.py" that allows that . It contains a functions 'create' that will return you a clean filtered dataset. At each step informations about the filters applied and remaining objects are printed. All those informations are saved in a txt file.
 
-
-def create(data,metadata,band_used,name,PISNdf='',ratioPISN=-1,training=True,dff=True,extra=True,Dbool=False,complete=True,mini=5,norm=True):
- 
- 
- 
- data : the light curve data frame
- 
- metadata : the corresponding meta data frame
- 
- PISNfile : PISN data frame to add. If addPISN is false, you can ignore this argument
- 
- ratioPISN : between 0 and 1, gives the number of PISN to add to a training sample OR to substract to a testing sample. 
- If ratioPISN = -1 then all PISN we be added to a training sample and no PISN will be substracted to a testing sample
- 
- training : True for a training sample, False for a testing sample. It specifies the data set for the PISN to be added
- 
- band : array like of all the passband you want to keep (ex/ [0,1,2,3,4,5] is to keep them all)
- 
- name : name given to the saved .pkl file at the end
- 
- dff : only deep drilling field ?
- 
- extra : only extra galactic objects ?
- 
- Dbool : only detected boolean ?
- 
- complete : keep only objects that have a minimum of 'mini' points in EVERY chosen passband. 
- 
- mini : minimum number of points in a passband (only the one chose in 'band') to be consider exploitable
- 
- norm : normalise the 'mjd' column by translating it to zero ?
 
   
 ## Parametrise dataset
