@@ -28,7 +28,7 @@ def create(data, metadata, band_used,
        List of all the passband you want to keep, using PLAsTiCC
        zenodo designations [0,1,2,3,4,5].
     name: str
-        Name for output pickle file.
+        Name for output pickle file (.pkl is added automatically).
     ddf: bool (optional)
         If True, use only DDF objects. Default is True.
     extra: bool (optional) 
@@ -47,13 +47,14 @@ def create(data, metadata, band_used,
         epoch. Default is True.
     ratioPISN : float (optional)
         Fraction of PISN to be added to training 
-        OR to be substracted from test. If -1, all PISN will
-        be added to training sample and none will be substracted
-        from test. If -2, nothing will be done (usable if no PISN file 
-        are inputed). Default is -1.
+        OR complementary fraction to be added to test (after we remove PISN).
+        If -1, all PISN will be added to training sample and none 
+        will be substracted from test. If -2, nothing will be done 
+        (usable even if no PISN file are inputed). Default is -1.
     training: bool (optional)
-        If True, add ratioPISN to the training sample, otherwise add ]
-        1-ratioPISN to the test sample. Default is True.
+        If True, add ratioPISN to the training sample, otherwise remove 
+        all PISN and add 1-ratioPISN to the test sample. 
+        Default is True.
         
         
     Returns
