@@ -15,7 +15,7 @@ Since LSST will be more sensitive than any other telescope in history, it is rea
 
 It is in this context that this project takes place. We will focus on identifying Pair Instability Supernovae (called PISN) in particular. This is a rare type of transient event which  was not present in the PLAsTiCC training sample. Now that the testing sample is public, we will use the PISN data to train directly a machine learning model. 
 
-To begin with, you need to have the PLAsTiCC data set. It is downladable here : https://zenodo.org/record/2539456#.YED0lP4o9hE
+To begin with, you need to have the PLAsTiCC data set. It is downladable [here](https://zenodo.org/record/2539456#.YED0lP4o9hE)
 
 For both testing and training you will find a data and a metadata file. The data file contains the light curves themselves, while metadata contains additionnal informations about the objects.
 The training is made of 2 files : "plasticc_train_lightcurves.csv" and "plasticc_train_metadata.csv" 
@@ -38,7 +38,7 @@ The first thing we usually do with light curves is to translate the time to 0. T
 
 Once you have your dataset, the idea is to fit the lightcurves using a given model. The parameters used for the fit (for each passband of a given object) will be used for the machine learning step. For example from a simple polynomial fit of the form A*x^2 + B*x + C,  we will extract 3 parameters per passband per object.
 So, from a data set we need to obtain a table with all the parameters for each objects. In the folder FeatureExtraction is a script "paraa" that allows. It contains a functions 'parametrise' that will return you a table of parameter with the associated objects.
-Here we tried with two models, the polynomial previous mentionned and the Bazin function (more here : https://arxiv.org/pdf/0904.1066.pdf) 
+Here we tried with two models, the polynomial previous mentionned and the Bazin function (more [here](https://arxiv.org/pdf/0904.1066.pdf)) 
 
 ## Machine learning
 
