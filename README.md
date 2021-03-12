@@ -1,6 +1,6 @@
 # PISN-classification
 
-Hello user ! 
+Hello user !
 
 The Large Synoptic Survey Telescope (LSST) will soon be operational and will provide us with an inimaginable amount of data. To be more specific, it will scan the sky, looking for objects with variable luminosity over time. Since analysing all the light curves manually is litteraly impossible, we need to figure a way to filter the data.
 
@@ -33,33 +33,11 @@ Once all files are downloaded we are ready. We can distinguish three main step :
 
 The first thing we usually do with light curves is to translate the time to 0. This mean that we set the time of the first point to be 0, and we apply the same translation to all the points on the curve. Also we might want to use only specific light curves and this is why original dataset needs to be transformed before using it. In the folder FilterDataBase there is the script "data_base.py" that allows that . It contains a functions 'create' that will return you a clean filtered dataset. At each step informations about the filters applied and remaining objects are printed. All those informations are saved in a txt file.
 
-
   
 ## Parametrise dataset
 
 Once you have your dataset, the idea is to fit the lightcurves using a given model. The parameters used for the fit (for each passband of a given object) will be used for the machine learning step. For example from a simple polynomial fit of the form A*x^2 + B*x + C,  we will extract 3 parameters per passband per object.
 So, from a data set we need to obtain a table with all the parameters for each objects. In the folder FeatureExtraction is a script "paraa" that allows. It contains a functions 'parametrise' that will return you a table of parameter with the associated objects.
-
-  parametrise(train,nb_param,band_used,guess,err,save,checkpoint='',begin=0):
- 
- 
-
- train : lightcurves dataframe to parametrize
- 
- nb_param : number of parameter in your model
- 
- band_used : array of all band used (ex : [2,3,4])
- 
- guess : array of all initial guess for the parameters : guess [1, 0, 1, 30, -5] is good for bazin
- 
- err : the err function associated with your model
- 
- checkpoint : the table is saved each time a ligne is calculated, if a problem occured you can put the partially filled table as a check point. With the right  'begin' it avoids recalculating from start.
- 
- begin : first object to parametrise (in case previous parametrisation you had a problem)
- 
- save : location and name of the save
-
 Here we tried with two models, the polynomial previous mentionned and the Bazin function (more here : https://arxiv.org/pdf/0904.1066.pdf) 
 
 ## Machine learning
