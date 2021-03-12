@@ -116,10 +116,11 @@ def create_table(objects,train,err_model,guess,table,begin,band_used,save):
     """
     
     start = timeit.default_timer()
-    
+        
+    print("Number of objects to parametrize : ",len(objects)-begin,"\n")
     for i in range(begin,len(objects)):
-    
-        print(i,'/',len(objects), end="\r")
+
+        print(i, end="\r")
         
         table.loc[i,0:] = get_param(train, objects[i], err_model, 
                                     guess, band_used)

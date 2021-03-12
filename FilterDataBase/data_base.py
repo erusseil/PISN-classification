@@ -167,14 +167,17 @@ def create(data, metadata, band_used,
     if norm ==True:
         #For each object we normalize the mjd
         start = timeit.default_timer()
+        print("Number of objects to normalize : ",len(objects))
+        
         for i in objects:
+            print(np.where(objects==i)[0], end='\r')
             for j in band_used:
                 object_mjd = clean.loc[(clean['object_id'] == i) & (clean['passband'] == j),'mjd']
                 clean.loc[(clean['object_id'] == i) & (clean['passband'] == j),'mjd'] = object_mjd-object_mjd.min()
 
         stop = timeit.default_timer()
-        print('Total time to normalise mjd %.1f sec'%(stop - start), file=f)
-        print('Total time to normalise mjd %.1f sec'%(stop - start)) 
+        print('Total time to normalise mjd %.1f sec\n'%(stop - start), file=f)
+        print('Total time to normalise mjd %.1f sec\n'%(stop - start)) 
 
 
     # Filter only objects with the required minimum number of epochs per filter
@@ -183,11 +186,15 @@ def create(data, metadata, band_used,
         start = timeit.default_timer()
 
         objects_complet=[]
+        print("Number of objects to check : ",len(objects))
         for i in objects:
+            print(np.where(objects==i)[0], end="\r")
             a = clean.loc[clean['object_id'] == i]
             bandOK = 0
+            
             for j in band_used:
                 nb_pts = (a['passband'] == j).sum()
+                
                 if nb_pts >= mini:
                     bandOK += 1
 
@@ -200,10 +207,10 @@ def create(data, metadata, band_used,
 
         clean=clean[isComplete]
         stop = timeit.default_timer()
-        print('Total time to check completness %.1f sec'%(stop - start), file=f) 
+        print('Total time to check completness %.1f sec\n'%(stop - start), file=f) 
         print('After COMPLETNESS we are left with %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
         print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset', file=f)
-        print('Total time to check completness %.1f sec'%(stop - start)) 
+        print('Total time to check completness %.1f sec\n'%(stop - start)) 
         print('After COMPLETNESS we are left with %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
         print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset')
 
