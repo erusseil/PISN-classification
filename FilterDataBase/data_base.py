@@ -12,7 +12,7 @@ def create(data, metadata, band_used,
            name, PISNdf='', ratioPISN=-1,
            training=True, ddf=True,
            extra=True, Dbool=False, complete=True,
-           mini=5, norm=True):
+           mini=5, norm=True, half=True, metatest=''):
     """
     Construct training or test sample with required fraction of PISN.
     
@@ -55,6 +55,10 @@ def create(data, metadata, band_used,
         If True, add ratioPISN to the training sample, otherwise remove 
         all PISN and add 1-ratioPISN to the test sample. 
         Default is True.
+    half: bool (optional)
+        If True, keep only points before the peak. Default is True.
+    metatest: pd.DataFrame (optional)
+        metadata corresponding to the test sample from PLAsTiCC zenodo files.
         
         
     Returns
@@ -77,6 +81,8 @@ def create(data, metadata, band_used,
     print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)), file=f)
     print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)))
       
+    
+        
     #Conditions on the deep drilling field and the redshift
     isDDF = metadata['ddf_bool'] == 1
     isExtra = metadata['true_z'] > 0
@@ -88,6 +94,9 @@ def create(data, metadata, band_used,
     if (extra == True):
         metadata = metadata.loc[isExtra]
 
+    peaklist=np.array(metadata['true_peakmjd'])
+    print(peaklist)
+    
     # Keep only 2 columns before fusing
     metadata = metadata.loc[:, ['object_id','true_target']]
     metadata = metadata.rename(columns={"true_target": "target"})
@@ -133,13 +142,37 @@ def create(data, metadata, band_used,
         print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
         
     elif (ratioPISN == -2): # Does nothing, ignore PISN
-        print('PISN ignored', file=f)
-        print('PISN ignored')
+        print('PISN ignored\n', file=f)
+        print('PISN ignored\n')
     else:
-        print('ERROR RATIO PISN VALUE', file=f)
-        print('ERROR RATIO PISN VALUE')
+        print('ERROR RATIO PISN VALUE\n', file=f)
+        print('ERROR RATIO PISN VALUE\n')
+           
+    #List of all objects in the clean sample
+    objects = np.unique(clean['object_id'])
+    
+    # We take only points before true peak
+    
+    if half==True:
+        start = timeit.default_timer()
+        list01=np.array([])
+        for i in range(len(objects)):
+            print(i, end='\r')
+            objdata=data[data['object_id']==objects[i]]
+            list01 = np.append(list01,objdata['mjd']<peaklist[i])
             
-
+        firsthalf=(list01 > 0).tolist()   #We have produced an array of 1 and 0, this converts it into boolean
+        clean = clean[firsthalf]
+        
+        objects = np.unique(clean['object_id'])
+        
+        print('After TRUE_PEAK we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
+        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset', file=f)
+        print('After TRUE_PEAK we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
+        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset')
+        stop = timeit.default_timer()
+        print('Total time to select points before true peak %.1f sec\n'%(stop - start), file=f)
+        print('Total time to select points before true peak %.1f sec\n'%(stop - start)) 
     
     #Filter the passband
         
@@ -161,13 +194,12 @@ def create(data, metadata, band_used,
         print('After DDB we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
         print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
         
-    #List of all objects in the training sample
     objects = np.unique(clean['object_id'])
 
     if norm ==True:
         #For each object we normalize the mjd
         start = timeit.default_timer()
-        print("Number of objects to normalize : ",len(objects))
+        print("Number of objects to normalize :",len(objects))
         
         for i in objects:
             print(np.where(objects==i)[0], end='\r')
@@ -186,7 +218,7 @@ def create(data, metadata, band_used,
         start = timeit.default_timer()
 
         objects_complet=[]
-        print("Number of objects to check : ",len(objects))
+        print("Number of objects to check :",len(objects))
         for i in objects:
             print(np.where(objects==i)[0], end="\r")
             a = clean.loc[clean['object_id'] == i]
