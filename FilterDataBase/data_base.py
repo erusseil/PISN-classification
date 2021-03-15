@@ -66,7 +66,7 @@ def create(data, metadata, band_used,
     -------
     
     """
-
+ 
     f = open("%s.txt"%name, "w") # Clear the previous print save
     f.close()
     f = open("%s.txt"%name, "a") # We will save the print in a txt file
@@ -81,48 +81,29 @@ def create(data, metadata, band_used,
 
     print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)), file=f)
     print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)))
+    
+    data = pd.merge(data, metadata.loc[:,['object_id','true_target']], on="object_id") 
+    data = data.rename(columns={"true_target": "target"})
       
+    #------------------------------------------------------------------------------------------------------------------
     
-        
-    #Conditions on the deep drilling field and the redshift
-    isDDF = metadata['ddf_bool'] == 1
-    isExtra = metadata['true_z'] > 0
+    # Add the PISN data to obtain our training sample
     
-    #We filter the initial metadata
-    if (ddf == True):
-        metadata = metadata.loc[isDDF]
-
-    if (extra == True):
-        metadata = metadata.loc[isExtra]
-        
-    
-    # Keep only 2 columns before fusing
-    metadata = metadata.loc[:, ['object_id','true_target']]
-    metadata = metadata.rename(columns={"true_target": "target"})
-        
-    # Then we fuse the metadata target column using the mutual ids 
-    clean = pd.merge(data, metadata, on="object_id")
-
-    print('\nAfter EXTRA-GALACTIC and DDF we have %s objects and %s mesures\n'%(len(np.unique(clean['object_id'])),len(clean)))
-    print('\nAfter EXTRA-GALACTIC and DDF we have %s objects and %s mesures\n'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
-    
-    #We add the PISN data to obtain our training sample
+    #------------------------------------------------------------------------------------------------------------------
     
     if ratioPISN == -1:             # if -1 we add all to training and let the testing as is
         if training == True:           
-            clean = pd.concat([PISNdf, clean])   #We fuse the original dataset with PISN dataset
+            data = pd.concat([PISNdf, data])   #We fuse the original dataset with PISN dataset
             
-            print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
-            print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
-            print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
-            print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
+            print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)))
+            print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)), file=f)
+            print('--> There are ',len(np.unique(data.loc[data['target']==994,'object_id'])),'PISN in the dataset\n')
+            print('--> There are ',len(np.unique(data.loc[data['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
             
-        metaPISN = pd.merge(PISNdf, metatest, on="object_id")
-        metadata = pd.concat([metaPISN, metadata])   #We fuse the original metadata with the PISN metadata
-        
+        metaPISN = metatest[np.in1d(metatest['object_id'],PISNdf['object_id'])]
+       
         
     elif (0 <= ratioPISN <= 1):       # if 0<ratioPISN<1 we add ratioPISN to training or 1-ratioPISN to testing
- 
         
         obj_PISN = (np.unique(PISNdf['object_id']))
         
@@ -132,23 +113,24 @@ def create(data, metadata, band_used,
         else :    
             PISN_split = train_test_split(obj_PISN, test_size=ratioPISN, random_state=1)  
         
+        
         if training==True:
             PISNdf_split = pd.DataFrame(data={'object_id': PISN_split[1]})
             
         else:
-            clean = clean[clean['target'] != 994]
+            data = data[data['target'] != 994]
             PISNdf_split = pd.DataFrame(data = {'object_id': PISN_split[0]})
             
         PISNdf = pd.merge(PISNdf_split, PISNdf, on="object_id")
-        clean = pd.concat([PISNdf,clean])  #We fuse the original dataset with PISN dataset
-        
-        metaPISN = pd.merge(PISNdf, metatest, on="object_id")
-        metadata = pd.concat([metaPISN, metadata])   #We fuse the original metadata with the PISN metadata
 
-        print('After we add/remove PISN we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
-        print('After we add/remove PISN we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
-        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
-        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
+        data = pd.concat([PISNdf,data])  #We fuse the original dataset with PISN dataset
+        metaPISN = metatest[np.in1d(metatest['object_id'],PISNdf['object_id'])] # We get metadata for the added PISN
+        
+
+        print('After we add/remove PISN we have %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)))
+        print('After we add/remove PISN we have %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)), file=f)
+        print('--> There are ',len(np.unique(data.loc[data['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
+        print('--> There are ',len(np.unique(data.loc[data['target']==994,'object_id'])),'PISN in the dataset\n')
         
     elif (ratioPISN == -2): # Does nothing, ignore PISN
         print('PISN ignored\n', file=f)
@@ -156,12 +138,59 @@ def create(data, metadata, band_used,
     else:
         print('ERROR RATIO PISN VALUE\n', file=f)
         print('ERROR RATIO PISN VALUE\n')
+  
+
+    if ratioPISN!=-2:
+        
+        #Let's keep only the 5 intersting columns for the metadata
+        
+        metadata = metadata.loc[:, ['object_id','true_target','ddf_bool','true_z','true_peakmjd']]
+        metaPISN = metaPISN.loc[:, ['object_id','true_target','ddf_bool','true_z','true_peakmjd']]
+        metadata = pd.concat([metaPISN, metadata])   #We fuse the original metadata with the PISN metadata
+        
+    #------------------------------------------------------------------------------------------------------------------
+            
+    #Filter on the deep drilling field and the redshift
+    
+    #------------------------------------------------------------------------------------------------------------------
+    
+    isDDF = metadata['ddf_bool'] == 1
+    isExtra = metadata['true_z'] > 0
+    
+    print(metadata)
+    #We filter the initial metadata
+    if (ddf == True):
+        metadata = metadata.loc[isDDF]
+    print(metadata)
+    if (extra == True):
+        metadata = metadata.loc[isExtra]
+        
+    #Before getting rid of the column, we keep all the peak values
+    peaklist=np.array(metadata['true_peakmjd'])
+    
+    # Keep only 2 columns before fusing
+    metadata = metadata.loc[:, ['object_id','true_target']]
+    metadata = metadata.rename(columns={"true_target": "target"})
+  
+        
+    # Then we fuse the metadata target column using the mutual ids 
+    clean = pd.merge(data, metadata, on=["object_id","target"])
+    objects = np.unique(clean['object_id'])
+    
+    print('After EXTRA-GALACTIC and DDF we have %s objects and %s mesures'%(len(objects),len(clean)))
+    print('After EXTRA-GALACTIC and DDF we have %s objects and %s mesures'%(len(objects),len(clean)), file=f)
+    
+    print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
+    print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
            
     #List of all objects/peaks in the clean sample
     objects = np.unique(clean['object_id'])
-    peaklist=np.array(metadata['true_peakmjd'])
     
-    # We take only points before true peak
+    #------------------------------------------------------------------------------------------------------------------
+    
+    # Take only points before true peak
+    
+    #------------------------------------------------------------------------------------------------------------------
     
     if half==True:
         start = timeit.default_timer()
@@ -183,9 +212,13 @@ def create(data, metadata, band_used,
         stop = timeit.default_timer()
         print('Total time to select points before true peak %.1f sec\n'%(stop - start), file=f)
         print('Total time to select points before true peak %.1f sec\n'%(stop - start)) 
+        
+    #------------------------------------------------------------------------------------------------------------------
     
     #Filter the passband
-        
+     
+    #------------------------------------------------------------------------------------------------------------------
+    
     to_fuse=[]
     for i in band_used:
         to_fuse.append(clean.loc[clean['passband']==i])
@@ -195,19 +228,30 @@ def create(data, metadata, band_used,
     print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
     print('After PASSBANDS we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
     print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
-        
-    # Filter the detected boolean    
+    
+    #------------------------------------------------------------------------------------------------------------------
+    
+    # Filter the detected boolean   
+    
+    #------------------------------------------------------------------------------------------------------------------
+    
     if Dbool==True:
         clean = clean[clean['detected_bool']==1]
-        print('After DDB we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
+        objects = np.unique(clean['object_id'])
+        print('After DDB we have %s objects and %s mesures'%(len(objects),len(clean)), file=f)
         print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
-        print('After DDB we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
+        print('After DDB we have %s objects and %s mesures'%(len(objects),len(clean)))
         print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
         
+    #------------------------------------------------------------------------------------------------------------------    
+    
+    # Normalise the mjd
+    
+    #------------------------------------------------------------------------------------------------------------------ 
+    
     objects = np.unique(clean['object_id'])
-
     if norm ==True:
-        #For each object we normalize the mjd
+        
         start = timeit.default_timer()
         print("Number of objects to normalize :",len(objects))
         
@@ -221,8 +265,12 @@ def create(data, metadata, band_used,
         print('Total time to normalise mjd %.1f sec\n'%(stop - start), file=f)
         print('Total time to normalise mjd %.1f sec\n'%(stop - start)) 
 
-
-    # Filter only objects with the required minimum number of epochs per filter
+    #------------------------------------------------------------------------------------------------------------------    
+    
+    # Filter only objects with the required minimum number of epochs per passband
+    
+    #------------------------------------------------------------------------------------------------------------------
+    
     if complete==True:
         
         start = timeit.default_timer()
