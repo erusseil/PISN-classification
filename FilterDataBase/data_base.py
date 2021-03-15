@@ -59,6 +59,7 @@ def create(data, metadata, band_used,
         If True, keep only points before the peak. Default is True.
     metatest: pd.DataFrame (optional)
         metadata corresponding to the test sample from PLAsTiCC zenodo files.
+        Default is ''
         
         
     Returns
@@ -93,9 +94,7 @@ def create(data, metadata, band_used,
 
     if (extra == True):
         metadata = metadata.loc[isExtra]
-
-    peaklist=np.array(metadata['true_peakmjd'])
-    print(peaklist)
+        
     
     # Keep only 2 columns before fusing
     metadata = metadata.loc[:, ['object_id','true_target']]
@@ -111,7 +110,10 @@ def create(data, metadata, band_used,
     
     if ratioPISN == -1:             # if -1 we add all to training and let the testing as is
         if training == True:           
-            clean = pd.concat([PISNdf, clean])
+            clean = pd.concat([PISNdf, clean])   #We fuse the original dataset with PISN dataset
+            
+            metaPISN = pd.merge(PISNdf, metatest, on="object_id")
+            metadata = pd.concat([metaPISN, metadata])   #We fuse the original metadata with the PISN metadata
             
             print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
             print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
@@ -125,7 +127,7 @@ def create(data, metadata, band_used,
         if ratioPISN == 0:
             PISN_split = obj_PISN
         else :    
-            PISN_split = clean_test_split(obj_PISN, test_size=ratioPISN, random_state=1)  
+            PISN_split = train_test_split(obj_PISN, test_size=ratioPISN, random_state=1)  
         
         if training==True:
             PISNdf_split = pd.DataFrame(data={'object_id': PISN_split[1]})
@@ -134,7 +136,10 @@ def create(data, metadata, band_used,
             PISNdf_split = pd.DataFrame(data = {'object_id': PISN_split[0]})
             
         PISNdf = pd.merge(PISNdf_split, PISNdf, on="object_id")
-        clean = pd.concat([PISNdf,clean])
+        clean = pd.concat([PISNdf,clean])  #We fuse the original dataset with PISN dataset
+        
+        metaPISN = pd.merge(PISNdf, metatest, on="object_id")
+        metadata = pd.concat([metaPISN, metadata])   #We fuse the original metadata with the PISN metadata
 
         print('After we add/remove PISN we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
         print('After we add/remove PISN we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
@@ -148,8 +153,9 @@ def create(data, metadata, band_used,
         print('ERROR RATIO PISN VALUE\n', file=f)
         print('ERROR RATIO PISN VALUE\n')
            
-    #List of all objects in the clean sample
+    #List of all objects/peaks in the clean sample
     objects = np.unique(clean['object_id'])
+    peaklist=np.array(metadata['true_peakmjd'])
     
     # We take only points before true peak
     
@@ -158,7 +164,7 @@ def create(data, metadata, band_used,
         list01=np.array([])
         for i in range(len(objects)):
             print(i, end='\r')
-            objdata=data[data['object_id']==objects[i]]
+            objdata=clean[clean['object_id']==objects[i]]
             list01 = np.append(list01,objdata['mjd']<peaklist[i])
             
         firsthalf=(list01 > 0).tolist()   #We have produced an array of 1 and 0, this converts it into boolean
