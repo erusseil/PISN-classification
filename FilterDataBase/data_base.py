@@ -112,25 +112,29 @@ def create(data, metadata, band_used,
         if training == True:           
             clean = pd.concat([PISNdf, clean])   #We fuse the original dataset with PISN dataset
             
-            metaPISN = pd.merge(PISNdf, metatest, on="object_id")
-            metadata = pd.concat([metaPISN, metadata])   #We fuse the original metadata with the PISN metadata
-            
             print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)))
             print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
             print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
             print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
             
+        metaPISN = pd.merge(PISNdf, metatest, on="object_id")
+        metadata = pd.concat([metaPISN, metadata])   #We fuse the original metadata with the PISN metadata
+        
+        
     elif (0 <= ratioPISN <= 1):       # if 0<ratioPISN<1 we add ratioPISN to training or 1-ratioPISN to testing
+ 
         
         obj_PISN = (np.unique(PISNdf['object_id']))
         
         if ratioPISN == 0:
             PISN_split = obj_PISN
+            
         else :    
             PISN_split = train_test_split(obj_PISN, test_size=ratioPISN, random_state=1)  
         
         if training==True:
             PISNdf_split = pd.DataFrame(data={'object_id': PISN_split[1]})
+            
         else:
             clean = clean[clean['target'] != 994]
             PISNdf_split = pd.DataFrame(data = {'object_id': PISN_split[0]})
