@@ -23,8 +23,6 @@ The testing is made of 12 files : 11 "plasticc_test_lightcurves_xx.csv" and "pla
 
 In addition I used the data of all PISN as separate files [here](https://drive.google.com/file/d/16_G2IjpJVdiv6GT0fs61-C_NuhHCPH8E/view)
 
-## Join all PISN data
-
 In the folder FilterDataBase you can find a notebook 'FusePISN.ipynb' that fuses all PISN files into one dataframe.
 
 Once all files are downloaded we are ready. We can distinguish three main step : Filter ; Parametrise ; Predict
@@ -40,6 +38,6 @@ Once you have your dataset, the idea is to fit the lightcurves using a given mod
 So, from a data set we need to obtain a table with all the parameters for each objects. In the folder FeatureExtraction is a script "paraa" that allows. It contains a functions 'parametrise' that will return you a table of parameter with the associated objects.
 Here we tried with two models, the polynomial previous mentionned and the Bazin function (more [here](https://arxiv.org/pdf/0904.1066.pdf)) 
 
-## Machine learning
+## Machine learning prediction
 
 Once we have the parameters table, most of the work is done. We are using a random forest algorithm to train the model an observe the results. The analysis notebooks are in the folder MachineLearning
