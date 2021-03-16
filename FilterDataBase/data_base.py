@@ -167,6 +167,7 @@ def create(data, metadata, band_used,
         
     #Before getting rid of the column, we keep all the peak values
     peaklist=np.array(metadata['true_peakmjd'])
+    peaklist2=metadata.loc[:,['true_peakmjd','object_id']]
     
     # Keep only 2 columns before fusing
     metadata = metadata.loc[:, ['object_id','true_target']]
@@ -194,15 +195,11 @@ def create(data, metadata, band_used,
     
     if half==True:
         start = timeit.default_timer()
-        list01=np.array([])
-        for i in range(len(objects)):
-            print(i, end='\r')
-            objdata=clean[clean['object_id']==objects[i]]
-            list01 = np.append(list01,objdata['mjd']<peaklist[i])
-            
-        firsthalf=(list01 > 0).tolist()   #We have produced an array of 1 and 0, this converts it into boolean
-        clean = clean[firsthalf]
-        
+        clean = pd.merge(clean, peaklist2, on="object_id")
+        clean['true_peakmjd']=clean['mjd']-clean['true_peakmjd']
+        clean=clean[clean['true_peakmjd']<0]
+        clean = clean.drop(['true_peakmjd'], axis=1)     
+ 
         objects = np.unique(clean['object_id'])
         
         print('After TRUE_PEAK we have %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
