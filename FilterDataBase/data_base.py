@@ -72,11 +72,11 @@ def create(data, metadata, band_used,
     f = open("%s.txt"%name, "a") # We will save the print in a txt file
     
     if training == True :
-        print("\n CREATION OF THE TRAINING DATA BASE\n ", file=f)
-        print("\n CREATION OF THE TRAINING DATA BASE\n ")
+        print("\n\n CREATION OF THE TRAINING DATA BASE\n ", file=f)
+        print("\n\n CREATION OF THE TRAINING DATA BASE\n ")
     else :
-        print("\n CREATION OF THE TESTING DATA BASE\n ", file=f)
-        print("\n CREATION OF THE TESTING DATA BASE\n ")
+        print("\n\n CREATION OF THE TESTING DATA BASE\n ", file=f)
+        print("\n\n CREATION OF THE TESTING DATA BASE\n ")
     
 
     print('We start with  %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)), file=f)
@@ -93,7 +93,7 @@ def create(data, metadata, band_used,
     
     if ratioPISN == -1:             # if -1 we add all to training and let the testing as is
         if training == True:           
-            data = pd.concat([PISNdf, data])   #We fuse the original dataset with PISN dataset
+            data = pd.concat([PISNdf, data],ignore_index=True)   #We fuse the original dataset with PISN dataset
             
             print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)))
             print('After we add PISN we have %s objects and %s mesures'%(len(np.unique(data['object_id'])),len(data)), file=f)
@@ -123,7 +123,7 @@ def create(data, metadata, band_used,
             
         PISNdf = pd.merge(PISNdf_split, PISNdf, on="object_id")
 
-        data = pd.concat([PISNdf,data])  #We fuse the original dataset with PISN dataset
+        data = pd.concat([PISNdf,data],ignore_index=True)  #We fuse the original dataset with PISN dataset
         metaPISN = metatest[np.in1d(metatest['object_id'],PISNdf['object_id'])] # We get metadata for the added PISN
         
 
@@ -146,7 +146,7 @@ def create(data, metadata, band_used,
         
         metadata = metadata.loc[:, ['object_id','true_target','ddf_bool','true_z','true_peakmjd']]
         metaPISN = metaPISN.loc[:, ['object_id','true_target','ddf_bool','true_z','true_peakmjd']]
-        metadata = pd.concat([metaPISN, metadata])   #We fuse the original metadata with the PISN metadata
+        metadata = pd.concat([metaPISN, metadata],ignore_index=True)   #We fuse the original metadata with the PISN metadata
         
     #------------------------------------------------------------------------------------------------------------------
             
@@ -157,11 +157,11 @@ def create(data, metadata, band_used,
     isDDF = metadata['ddf_bool'] == 1
     isExtra = metadata['true_z'] > 0
     
-    print(metadata)
+    
     #We filter the initial metadata
     if (ddf == True):
         metadata = metadata.loc[isDDF]
-    print(metadata)
+
     if (extra == True):
         metadata = metadata.loc[isExtra]
         
