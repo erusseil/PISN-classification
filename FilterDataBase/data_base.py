@@ -247,21 +247,22 @@ def create(data, metadata, band_used,
     #------------------------------------------------------------------------------------------------------------------ 
     
     objects = np.unique(clean['object_id'])
+    
     if norm ==True:
         
         start = timeit.default_timer()
-        print("Number of objects to normalize :",len(objects))
-        
-        for i in objects:
-            print(np.where(objects==i)[0], end='\r')
-            for j in band_used:
-                object_mjd = clean.loc[(clean['object_id'] == i) & (clean['passband'] == j),'mjd']
-                clean.loc[(clean['object_id'] == i) & (clean['passband'] == j),'mjd'] = object_mjd-object_mjd.min()
 
+        mintable = clean.pivot_table(index="passband", columns="object_id", values="mjd",aggfunc='min')
+        mindf = pd.DataFrame(data=mintable.unstack())
+        clean2 = pd.merge(mindf, clean, on=["object_id","passband"])
+        clean2['mjd'] = clean2['mjd']-clean2[0]
+        clean2 = clean2.drop([0],axis=1)
+    
         stop = timeit.default_timer()
         print('Total time to normalise mjd %.1f sec\n'%(stop - start), file=f)
         print('Total time to normalise mjd %.1f sec\n'%(stop - start)) 
-
+        
+    
     #------------------------------------------------------------------------------------------------------------------    
     
     # Filter only objects with the required minimum number of epochs per passband
