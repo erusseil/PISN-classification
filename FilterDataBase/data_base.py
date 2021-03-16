@@ -196,8 +196,8 @@ def create(data, metadata, band_used,
     if half==True:
         start = timeit.default_timer()
         clean = pd.merge(clean, peaklist2, on="object_id")
-        clean['true_peakmjd']=clean['mjd']-clean['true_peakmjd']
-        clean=clean[clean['true_peakmjd']<0]
+        clean['true_peakmjd'] = clean['mjd'] - clean['true_peakmjd']
+        clean = clean[clean['true_peakmjd'] < 0]
         clean = clean.drop(['true_peakmjd'], axis=1)     
  
         objects = np.unique(clean['object_id'])
@@ -268,33 +268,22 @@ def create(data, metadata, band_used,
     # Filter only objects with the required minimum number of epochs per passband
     
     #------------------------------------------------------------------------------------------------------------------
-    
     if complete==True:
-        
+     
         start = timeit.default_timer()
 
-        objects_complet=[]
-        print("Number of objects to check :",len(objects))
-        for i in objects:
-            print(np.where(objects==i)[0], end="\r")
-            a = clean.loc[clean['object_id'] == i]
-            bandOK = 0
-            
-            for j in band_used:
-                nb_pts = (a['passband'] == j).sum()
-                
-                if nb_pts >= mini:
-                    bandOK += 1
+        # Create a table describing how many points exist for each bands and each object   
+        counttable = clean.pivot_table(index="passband", columns="object_id", values="mjd",aggfunc=lambda x: len(x))
 
-            if bandOK==len(band_used):
-                objects_complet.append(i)
+        # Create a table describing how many bands are complete for each object
+        df_validband = pd.DataFrame(data={'nb_valid' : (counttable>=mini).sum()})
 
-        isComplete=[]
-        for i in range(len(clean['object_id'])):
-            isComplete.append(clean.iloc[i]['object_id'] in objects_complet)
-
-        clean=clean[isComplete]
+        clean = pd.merge(df_validband,clean, on=["object_id"])
+        clean = clean[clean['nb_valid']==len(band_used)]
+        clean = clean.drop(['nb_valid'],axis=1)
+    
         stop = timeit.default_timer()
+        
         print('Total time to check completness %.1f sec\n'%(stop - start), file=f) 
         print('After COMPLETNESS we are left with %s objects and %s mesures'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
         print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset', file=f)
