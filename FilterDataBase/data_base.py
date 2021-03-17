@@ -84,6 +84,7 @@ def create(data, metadata, band_used,
     
     data = pd.merge(data, metadata.loc[:,['object_id','true_target']], on="object_id") 
     data = data.rename(columns={"true_target": "target"})
+    metadata = metadata[np.in1d(metadata['object_id'],data['object_id'])] #In metadata, keep only objects that exist in data
       
     #------------------------------------------------------------------------------------------------------------------
     
@@ -166,18 +167,11 @@ def create(data, metadata, band_used,
     if (extra == True):
         metadata = metadata.loc[isExtra]
         
-    #Before getting rid of the column, we keep all the peak values
-    peaklist=metadata.loc[:,['true_peakmjd','object_id']]
-    
-    # Keep only 2 columns before fusing
-    metadata = metadata.loc[:, ['object_id','true_target']]
-    metadata = metadata.rename(columns={"true_target": "target"})
-  
-        
-    # Then we fuse the metadata target column using the mutual ids 
+    print(metadata)
+    # Then we keep only objects that exist in the metadata
     clean = data[np.in1d(data['object_id'],metadata['object_id'])]
     objects = np.unique(clean['object_id'])
-    PISN_nb=len(np.unique(clean.loc[clean['target']==994,'object_id']))
+    PISN_nb = len(np.unique(clean.loc[clean['target']==994,'object_id']))
     
     print('After EXTRA-GALACTIC and DDF we have %s objects and %s measurements'%(len(objects),len(clean)))
     print('After EXTRA-GALACTIC and DDF we have %s objects and %s measurements'%(len(objects),len(clean)), file=f)
@@ -194,6 +188,9 @@ def create(data, metadata, band_used,
   
     #------------------------------------------------------------------------------------------------------------------
     
+    # We get all the peak values
+    peaklist=metadata.loc[:,['true_peakmjd','object_id']]
+ 
     if half==True:
         start = timeit.default_timer()
         clean = pd.merge(clean, peaklist, on="object_id")
