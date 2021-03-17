@@ -106,28 +106,24 @@ def create(data, metadata, band_used,
         metaPISN = metatest[np.in1d(metatest['object_id'],PISNdf['object_id'])]
        
         
-    elif (0 <= ratioPISN <= 1):       # if 0<ratioPISN<1 we add ratioPISN to training or 1-ratioPISN to testing
+    elif (0 < ratioPISN <= 1):       # if 0<ratioPISN<1 we add ratioPISN to training or 1-ratioPISN to testing
         
         obj_PISN = (np.unique(PISNdf['object_id']))
-        
-        if ratioPISN == 0:
-            PISN_split = obj_PISN
-            
-        else :    
-            PISN_split = train_test_split(obj_PISN, test_size=ratioPISN, random_state=1)  
-        
-        
+        PISN_split = train_test_split(obj_PISN, test_size=ratioPISN, random_state=1)  
+
         if training==True:
             PISNdf_split = pd.DataFrame(data={'object_id': PISN_split[1]})
+            
             
         else:
             data = data[data['target'] != 994]
             PISNdf_split = pd.DataFrame(data = {'object_id': PISN_split[0]})
             
-        PISNdf = pd.merge(PISNdf_split, PISNdf, on="object_id")
-
-        data = pd.concat([PISNdf,data],ignore_index=True)  #We fuse the original dataset with PISN dataset
+         
+        PISNdf = PISNdf[np.in1d(PISNdf['object_id'],PISNdf_split['object_id'])] #Keep only the random subsample
         metaPISN = metatest[np.in1d(metatest['object_id'],PISNdf['object_id'])] # We get metadata for the added PISN
+        
+        data = pd.concat([PISNdf,data],ignore_index=True)  #We fuse the original dataset with PISN dataset
         
         PISN_nb = len(np.unique(data.loc[data['target']==994,'object_id']))
         objects = np.unique(data['object_id'])
@@ -171,8 +167,7 @@ def create(data, metadata, band_used,
         metadata = metadata.loc[isExtra]
         
     #Before getting rid of the column, we keep all the peak values
-    peaklist=np.array(metadata['true_peakmjd'])
-    peaklist2=metadata.loc[:,['true_peakmjd','object_id']]
+    peaklist=metadata.loc[:,['true_peakmjd','object_id']]
     
     # Keep only 2 columns before fusing
     metadata = metadata.loc[:, ['object_id','true_target']]
@@ -180,7 +175,7 @@ def create(data, metadata, band_used,
   
         
     # Then we fuse the metadata target column using the mutual ids 
-    clean = pd.merge(data, metadata, on=["object_id","target"])
+    clean = data[np.in1d(data['object_id'],metadata['object_id'])]
     objects = np.unique(clean['object_id'])
     PISN_nb=len(np.unique(clean.loc[clean['target']==994,'object_id']))
     
@@ -196,12 +191,12 @@ def create(data, metadata, band_used,
     #------------------------------------------------------------------------------------------------------------------
     
     # Take only points before true peak
-    
+  
     #------------------------------------------------------------------------------------------------------------------
     
     if half==True:
         start = timeit.default_timer()
-        clean = pd.merge(clean, peaklist2, on="object_id")
+        clean = pd.merge(clean, peaklist, on="object_id")
         clean['true_peakmjd'] = clean['mjd'] - clean['true_peakmjd']
         clean = clean[clean['true_peakmjd'] < 0]
         clean = clean.drop(['true_peakmjd'], axis=1)     
