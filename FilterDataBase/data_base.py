@@ -259,9 +259,9 @@ def create(data, metadata, band_used,
 
         mintable = clean.pivot_table(index="passband", columns="object_id", values="mjd",aggfunc='min')
         mindf = pd.DataFrame(data=mintable.unstack())
-        clean2 = pd.merge(mindf, clean, on=["object_id","passband"])
-        clean2['mjd'] = clean2['mjd']-clean2[0]
-        clean2 = clean2.drop([0],axis=1)
+        clean = pd.merge(mindf, clean, on=["object_id","passband"])
+        clean['mjd'] = clean['mjd']-clean[0]
+        clean = clean.drop([0],axis=1)
     
         stop = timeit.default_timer()
         print('Total time to normalise mjd %.1f sec\n'%(stop - start), file=f)
