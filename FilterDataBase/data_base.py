@@ -167,7 +167,7 @@ def create(data, metadata, band_used,
     if (extra == True):
         metadata = metadata.loc[isExtra]
         
-    print(metadata)
+        
     # Then we keep only objects that exist in the metadata
     clean = data[np.in1d(data['object_id'],metadata['object_id'])]
     objects = np.unique(clean['object_id'])
