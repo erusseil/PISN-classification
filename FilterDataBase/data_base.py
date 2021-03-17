@@ -79,8 +79,8 @@ def create(data, metadata, band_used,
         print("\n\n CREATION OF THE TESTING DATA BASE\n ")
     
 
-    print('We start with  %s objects and %s measurements'%(len(np.unique(data['object_id'])),len(data)), file=f)
-    print('We start with  %s objects and %s measurements'%(len(np.unique(data['object_id'])),len(data)))
+    print('We start with  %s objects and %s measurements\n'%(len(np.unique(data['object_id'])),len(data)), file=f)
+    print('We start with  %s objects and %s measurements\n'%(len(np.unique(data['object_id'])),len(data)))
     
     data = pd.merge(data, metadata.loc[:,['object_id','true_target']], on="object_id") 
     data = data.rename(columns={"true_target": "target"})
@@ -95,10 +95,13 @@ def create(data, metadata, band_used,
         if training == True:           
             data = pd.concat([PISNdf, data],ignore_index=True)   #We fuse the original dataset with PISN dataset
             
-            print('After we add PISN we have %s objects and %s measurements'%(len(np.unique(data['object_id'])),len(data)))
-            print('After we add PISN we have %s objects and %s measurements'%(len(np.unique(data['object_id'])),len(data)), file=f)
-            print('--> There are ',len(np.unique(data.loc[data['target']==994,'object_id'])),'PISN in the dataset\n')
-            print('--> There are ',len(np.unique(data.loc[data['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
+            PISN_nb = len(np.unique(data.loc[data['target']==994,'object_id']))
+            objects = np.unique(data['object_id'])
+            
+            print('After we add PISN we have %s objects and %s measurements'%(len(objects),len(data)))
+            print('After we add PISN we have %s objects and %s measurements'%(len(objects),len(data)), file=f)
+            print('--> There are ',PISN_nb,'PISN in the dataset\n')
+            print('--> There are ',PISN_nb,'PISN in the dataset\n', file=f)
             
         metaPISN = metatest[np.in1d(metatest['object_id'],PISNdf['object_id'])]
        
@@ -126,11 +129,13 @@ def create(data, metadata, band_used,
         data = pd.concat([PISNdf,data],ignore_index=True)  #We fuse the original dataset with PISN dataset
         metaPISN = metatest[np.in1d(metatest['object_id'],PISNdf['object_id'])] # We get metadata for the added PISN
         
+        PISN_nb = len(np.unique(data.loc[data['target']==994,'object_id']))
+        objects = np.unique(data['object_id'])
 
-        print('After we add/remove PISN we have %s objects and %s measurements'%(len(np.unique(data['object_id'])),len(data)))
-        print('After we add/remove PISN we have %s objects and %s measurements'%(len(np.unique(data['object_id'])),len(data)), file=f)
-        print('--> There are ',len(np.unique(data.loc[data['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
-        print('--> There are ',len(np.unique(data.loc[data['target']==994,'object_id'])),'PISN in the dataset\n')
+        print('After we add/remove PISN we have %s objects and %s measurements'%(len(objects),len(data)))
+        print('After we add/remove PISN we have %s objects and %s measurements'%(len(objects),len(data)), file=f)
+        print('--> There are ',PISN_nb,'PISN in the dataset\n', file=f)
+        print('--> There are ',PISN_nb,'PISN in the dataset\n')
         
     elif (ratioPISN == -2): # Does nothing, ignore PISN
         print('PISN ignored\n', file=f)
@@ -177,12 +182,13 @@ def create(data, metadata, band_used,
     # Then we fuse the metadata target column using the mutual ids 
     clean = pd.merge(data, metadata, on=["object_id","target"])
     objects = np.unique(clean['object_id'])
+    PISN_nb=len(np.unique(clean.loc[clean['target']==994,'object_id']))
     
     print('After EXTRA-GALACTIC and DDF we have %s objects and %s measurements'%(len(objects),len(clean)))
     print('After EXTRA-GALACTIC and DDF we have %s objects and %s measurements'%(len(objects),len(clean)), file=f)
     
-    print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
-    print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
+    print('--> There are ',PISN_nb,'PISN in the dataset\n', file=f)
+    print('--> There are ',PISN_nb,'PISN in the dataset\n')
            
     #List of all objects/peaks in the clean sample
     objects = np.unique(clean['object_id'])
@@ -201,11 +207,12 @@ def create(data, metadata, band_used,
         clean = clean.drop(['true_peakmjd'], axis=1)     
  
         objects = np.unique(clean['object_id'])
+        PISN_nb=len(np.unique(clean.loc[clean['target']==994,'object_id']))
         
-        print('After TRUE_PEAK we have %s objects and %s measurements'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
-        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset', file=f)
-        print('After TRUE_PEAK we have %s objects and %s measurements'%(len(np.unique(clean['object_id'])),len(clean)))
-        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset')
+        print('After TRUE_PEAK we have %s objects and %s measurements'%(len(objects),len(clean)), file=f)
+        print('--> There are ',PISN_nb,'PISN in the dataset', file=f)
+        print('After TRUE_PEAK we have %s objects and %s measurements'%(len(objects),len(clean)))
+        print('--> There are ',PISN_nb,'PISN in the dataset')
         stop = timeit.default_timer()
         print('Total time to select points before true peak %.1f sec\n'%(stop - start), file=f)
         print('Total time to select points before true peak %.1f sec\n'%(stop - start)) 
@@ -221,10 +228,13 @@ def create(data, metadata, band_used,
         to_fuse.append(clean.loc[clean['passband']==i])
         
     clean=pd.concat(to_fuse)
-    print('After PASSBANDS we have %s objects and %s measurements'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
-    print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
-    print('After PASSBANDS we have %s objects and %s measurements'%(len(np.unique(clean['object_id'])),len(clean)))
-    print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
+    objects = np.unique(clean['object_id'])
+    PISN_nb=len(np.unique(clean.loc[clean['target']==994,'object_id']))
+    
+    print('After PASSBANDS we have %s objects and %s measurements'%(len(objects),len(clean)), file=f)
+    print('--> There are ',PISN_nb,'PISN in the dataset\n', file=f)
+    print('After PASSBANDS we have %s objects and %s measurements'%(len(objects),len(clean)))
+    print('--> There are ',PISN_nb,'PISN in the dataset\n')
     
     #------------------------------------------------------------------------------------------------------------------
     
@@ -233,12 +243,15 @@ def create(data, metadata, band_used,
     #------------------------------------------------------------------------------------------------------------------
     
     if Dbool==True:
+        
         clean = clean[clean['detected_bool']==1]
         objects = np.unique(clean['object_id'])
+        PISN_nb=len(np.unique(clean.loc[clean['target']==994,'object_id']))
+        
         print('After DDB we have %s objects and %s measurements'%(len(objects),len(clean)), file=f)
-        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n', file=f)
+        print('--> There are ',PISN_nb,'PISN in the dataset\n', file=f)
         print('After DDB we have %s objects and %s measurements'%(len(objects),len(clean)))
-        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset\n')
+        print('--> There are ',PISN_nb,'PISN in the dataset\n')
         
     #------------------------------------------------------------------------------------------------------------------    
     
@@ -284,12 +297,15 @@ def create(data, metadata, band_used,
     
         stop = timeit.default_timer()
         
+        objects = np.unique(clean['object_id'])
+        PISN_nb=len(np.unique(clean.loc[clean['target']==994,'object_id']))
+        
         print('Total time to check completness %.1f sec\n'%(stop - start), file=f) 
-        print('After COMPLETNESS we are left with %s objects and %s measurements'%(len(np.unique(clean['object_id'])),len(clean)), file=f)
-        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset', file=f)
+        print('After COMPLETNESS we are left with %s objects and %s measurements'%(len(objects),len(clean)), file=f)
+        print('--> There are ',PISN_nb,'PISN in the dataset', file=f)
         print('Total time to check completness %.1f sec\n'%(stop - start)) 
-        print('After COMPLETNESS we are left with %s objects and %s measurements'%(len(np.unique(clean['object_id'])),len(clean)))
-        print('--> There are ',len(np.unique(clean.loc[clean['target']==994,'object_id'])),'PISN in the dataset')
+        print('After COMPLETNESS we are left with %s objects and %s measurements'%(len(objects),len(clean)))
+        print('--> There are ',PISN_nb,'PISN in the dataset')
 
     f.close()
     clean.to_pickle("%s.pkl"%name)
