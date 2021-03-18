@@ -30,7 +30,8 @@ def create(data, metadata, band_used,
     name: str
         Name for output pickle file (.pkl is added automatically).
     ddf: bool (optional)
-        If True, use only DDF objects. Default is True.
+        If True, use only DDF objects, else only non DDF.
+        Default is True.
     extra: bool (optional) 
         If True, use only extra galactic objects. Default is True.
     Dbool: bool (optional) 
@@ -157,13 +158,19 @@ def create(data, metadata, band_used,
     #------------------------------------------------------------------------------------------------------------------
     
     isDDF = metadata['ddf_bool'] == 1
+    isnotDDF = metadata['ddf_bool'] == 0
     isExtra = metadata['true_z'] > 0
     
     
     #We filter the initial metadata
+    
+    #Start with DDF objects :
     if (ddf == True):
         metadata = metadata.loc[isDDF]
-
+    else :
+        metadata = metadata.loc[isnotDDF]
+    
+    #Then extragalactic objects :
     if (extra == True):
         metadata = metadata.loc[isExtra]
         
