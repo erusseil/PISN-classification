@@ -12,7 +12,7 @@ def create(data, metadata, band_used,
            name, PISNdf='', ratioPISN=-1,
            training=True, ddf=True,
            extra=True, Dbool=False, complete=True,
-           mini=5, norm=True, half=True, metatest=''):
+           mini=5, mjd_tozero=True, half=True, metatest=''):
     """
     Construct training or test sample with required fraction of PISN.
     
@@ -42,7 +42,7 @@ def create(data, metadata, band_used,
     mini: int (optional)
         Minimum number of points required in a passband 
         so the objects is considered exploitable. Default is 5.
-    norm: bool (True) 
+    mjd_tozero: bool (True) 
         If True, normalise the 'mjd' by shifting to first observed
         epoch. Default is True.
     ratioPISN : float (optional)
@@ -253,7 +253,7 @@ def create(data, metadata, band_used,
     
     objects = np.unique(clean['object_id'])
     
-    if norm ==True:
+    if mjd_tozero ==True:
         
         start = timeit.default_timer()
 
