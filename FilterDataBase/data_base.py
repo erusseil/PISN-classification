@@ -12,7 +12,8 @@ def create(data, metadata, band_used,
            name, PISNdf='', ratioPISN=-1,
            training=True, ddf=True,
            extra=True, Dbool=False, complete=True,
-           mini=5, norm=True, half=True, metatest=''):
+           mini=5, mjd_tozero=True, half=True, 
+           norm_flux=True, metatest=''):
     """
     Construct training or test sample with required fraction of PISN.
     
@@ -30,9 +31,10 @@ def create(data, metadata, band_used,
     name: str
         Name for output pickle file (.pkl is added automatically).
     ddf: bool (optional)
-        If True, use only DDF objects. Default is True.
+        If True, use only DDF objects, else only non DDF.
+        Default is True.
     extra: bool (optional) 
-        If True, use only extra galactic objects. Default is True.
+        If True, use only ext122618819ra galactic objects. Default is True.
     Dbool: bool (optional) 
         If True, use only epochs with detected_bool == 1.
         Default is True. 
@@ -42,7 +44,7 @@ def create(data, metadata, band_used,
     mini: int (optional)
         Minimum number of points required in a passband 
         so the objects is considered exploitable. Default is 5.
-    norm: bool (True) 
+    mjd_tozero: bool (optional) 
         If True, normalise the 'mjd' by shifting to first observed
         epoch. Default is True.
     ratioPISN : float (optional)
@@ -60,7 +62,9 @@ def create(data, metadata, band_used,
     metatest: pd.DataFrame (optional)
         metadata corresponding to the test sample from PLAsTiCC zenodo files.
         Default is ''
-        
+    norm_flux: bool (optional) 
+        If True, divide the 'flux' by the maximum flux of the considered
+        passband. Default is True.
         
     Returns
     -------
@@ -157,13 +161,19 @@ def create(data, metadata, band_used,
     #------------------------------------------------------------------------------------------------------------------
     
     isDDF = metadata['ddf_bool'] == 1
+    isnotDDF = metadata['ddf_bool'] == 0
     isExtra = metadata['true_z'] > 0
     
     
     #We filter the initial metadata
+    
+    #Start with DDF objects :
     if (ddf == True):
         metadata = metadata.loc[isDDF]
-
+    else :
+        metadata = metadata.loc[isnotDDF]
+    
+    #Then extragalactic objects :
     if (extra == True):
         metadata = metadata.loc[isExtra]
         
@@ -247,13 +257,13 @@ def create(data, metadata, band_used,
         
     #------------------------------------------------------------------------------------------------------------------    
     
-    # Normalise the mjd
+    # Translate the mjd
     
     #------------------------------------------------------------------------------------------------------------------ 
     
     objects = np.unique(clean['object_id'])
     
-    if norm ==True:
+    if mjd_tozero == True:
         
         start = timeit.default_timer()
 
@@ -264,15 +274,39 @@ def create(data, metadata, band_used,
         clean = clean.drop([0],axis=1)
     
         stop = timeit.default_timer()
-        print('Total time to normalise mjd %.1f sec\n'%(stop - start), file=f)
-        print('Total time to normalise mjd %.1f sec\n'%(stop - start)) 
+        print('Total time to translate mjd %.1f sec\n'%(stop - start), file=f)
+        print('Total time to translate mjd %.1f sec\n'%(stop - start)) 
         
+    #------------------------------------------------------------------------------------------------------------------    
+    
+    # Normalise the flux
+    
+    #------------------------------------------------------------------------------------------------------------------ 
+    
+    objects = np.unique(clean['object_id'])
+    
+    if norm_flux == True:
+        
+        start = timeit.default_timer()
+
+        maxtable = clean.pivot_table(index="passband", columns="object_id", values="flux",aggfunc='max')
+        maxdf = pd.DataFrame(data=maxtable.unstack())
+        clean = pd.merge(maxdf, clean, on=["object_id","passband"])
+        clean['flux'] = clean['flux']/clean[0]
+        clean = clean.drop([0],axis=1)
+    
+        stop = timeit.default_timer()
+        print('Total time to normalise flux %.1f sec\n'%(stop - start), file=f)
+        print('Total time to normalise flux %.1f sec\n'%(stop - start)) 
+        
+        maxdf.to_pickle("%s_maxdf.pkl"%name)
     
     #------------------------------------------------------------------------------------------------------------------    
     
     # Filter only objects with the required minimum number of epochs per passband
     
     #------------------------------------------------------------------------------------------------------------------
+    
     if complete==True:
      
         start = timeit.default_timer()
@@ -301,3 +335,8 @@ def create(data, metadata, band_used,
 
     f.close()
     clean.to_pickle("%s.pkl"%name)
+
+        
+        
+        
+        
