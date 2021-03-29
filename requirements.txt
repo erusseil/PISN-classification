@@ -1,5 +1,11 @@
 numpy
-pandas
-jupyter
-sklearn
 matplotlib
+matplotlib
+pandas
+timeit
+scipy
+os
+glob
+sklearn
+pickle
+
