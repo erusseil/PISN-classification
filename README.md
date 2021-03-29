@@ -29,13 +29,13 @@ Once all files are downloaded we are ready. We can distinguish three main step :
 
 ## Filter dataset
 
-The first thing we usually do with light curves is to translate the time to 0. This mean that we set the time of the first point to be 0, and we apply the same translation to all the points on the curve. Also we might want to use only specific light curves and this is why original dataset needs to be transformed before using it. In the folder FilterDataBase there is the script "data_base.py" that allows that . It contains a functions 'create' that will return you a clean filtered dataset. At each step informations about the filters applied and remaining objects are printed. All those informations are saved in a txt file.
+The first thing we usually do with light curves is to translate the time to 0. This mean that we set the time of the first point to be 0, and we apply the same translation to all the points on the curve.Additionaly we might want to normalize the flux by dividing the values by the maximum. Finally we might want to apply specific cuts, to filter certain objects. This is why original dataset needs to be transformed before using it. In the folder FilterDataBase there is the script "data_base.py" that allows that . It contains a functions 'create' that will return you a clean filtered dataset. At each step informations about the filters applied and remaining objects are printed. All those informations are saved in a txt file.
 
   
 ## Parametrise dataset
 
-Once you have your dataset, the idea is to fit the lightcurves using a given model. The parameters used for the fit (for each passband of a given object) will be used for the machine learning step. For example from a simple polynomial fit of the form A*x^2 + B*x + C,  we will extract 3 parameters per passband per object.
-So, from a data set we need to obtain a table with all the parameters for each objects. In the folder FeatureExtraction is a script "paraa" that allows. It contains a functions 'parametrise' that will return you a table of parameter with the associated objects.
+Once you have your dataset, the idea is to fit the lightcurves using a given model. The parameters used for the fit (for each passband of a given object) will be used for the machine learning step. For example from a simple polynomial fit of the form A*x^2 + B*x + C,  we will extract 3 parameters per passband per object. Additionally we can add extra parameters such as the number of points, the maximum peak value or the value of the loss funcion for the fit.
+So, from a data set we need to obtain a table with all the parameters for each objects. In the folder FeatureExtraction is a script "parametrisation.py" that allows that. It contains a functions 'parametrise' that will return you a table of parameter with the associated objects. Along this file you can also find "models.py" that contains the mathematical models for the fit : you can try other fits by adding your functions in this file.
 Here we tried with two models, the polynomial previous mentionned and the Bazin function (more [here](https://arxiv.org/pdf/0904.1066.pdf)) 
 
 ## Machine learning prediction
