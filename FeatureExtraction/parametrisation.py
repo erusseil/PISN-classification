@@ -7,14 +7,14 @@ from scipy.optimize import least_squares
 from models import *
 
 
-def parametrise(train, nb_param, band_used, guess, err, save, checkpoint='', begin=0,
+def parametrise(clean, nb_param, band_used, guess, err, save, checkpoint='', begin=0,
                cost=True, maxi=True, nb_points=True, peaktable=''):
      
     """Find best fit parameters for the polynomial model.
     
     Parameters
     ----------
-    train: pd.DataFrame
+    clean: pd.DataFrame
         Lightcurves dataframe to parametrize.
     nb_param: int 
         Number of parameters in your model.
@@ -55,16 +55,16 @@ def parametrise(train, nb_param, band_used, guess, err, save, checkpoint='', beg
     
     
     if maxi == True:     #Let's add the maximum flux as a column if needed
-        train = pd.merge(peaktable, train, on=["object_id","passband"])
+        clean = pd.merge(peaktable, clean, on=["object_id","passband"])
      
     #Get the number of passband used
     nb_passband = len(band_used)
     
     # Get ids of the objects
-    objects = np.unique(train['object_id'])
+    objects = np.unique(clean['object_id'])
     
     # Get targets of the object
-    target_list = np.array(train.pivot_table(columns="object_id", values="target"))[0]
+    target_list = np.array(clean.pivot_table(columns="object_id", values="target"))[0]
     
     
     #####################################################################################
@@ -123,7 +123,7 @@ def parametrise(train, nb_param, band_used, guess, err, save, checkpoint='', beg
 
         for i in band_used:
             
-            obj = train.loc[(train['object_id'] == ide) & (train['passband'] == i)]
+            obj = clean.loc[(clean['object_id'] == ide) & (clean['passband'] == i)]
             flux = np.array(obj['flux'])
             time = np.array(obj['mjd'])
 
