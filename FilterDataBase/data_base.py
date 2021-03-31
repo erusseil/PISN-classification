@@ -163,6 +163,7 @@ def create(data, metadata, band_used,
     isDDF = metadata['ddf_bool'] == 1
     isnotDDF = metadata['ddf_bool'] == 0
     isExtra = metadata['true_z'] > 0
+    isnotExtra = metadata['true_z'] == 0
     
     
     #We filter the initial metadata
@@ -176,7 +177,8 @@ def create(data, metadata, band_used,
     #Then extragalactic objects :
     if (extra == True):
         metadata = metadata.loc[isExtra]
-        
+    else :
+        metadata = metadata.loc[isnotExtra]   
         
     # Then we keep only objects that exist in the metadata
     clean = data[np.in1d(data['object_id'],metadata['object_id'])]
