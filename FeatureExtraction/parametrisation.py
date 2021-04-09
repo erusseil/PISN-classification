@@ -92,7 +92,7 @@ def parametrise(clean, nb_param, band_used, guess, err, save, checkpoint='', beg
     
     
     # We initialise a table of correct size but filled with 0    
-    if begin == 0 :               
+    if checkpoint == '' :               
 
         df = {'object_id': objects, 'target': target_list}
         
