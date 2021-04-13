@@ -23,7 +23,7 @@ def create_ml(training,save,binary=True):
         location and name of the save
     binary: boolean
         If true, all non-PISN we be grouped in the target
-        999. Default is True
+        1. Default is True
     ----------
 
     """
