@@ -163,6 +163,7 @@ def create(data, metadata, band_used,
     isDDF = metadata['ddf_bool'] == 1
     isnotDDF = metadata['ddf_bool'] == 0
     isExtra = metadata['true_z'] > 0
+    isnotExtra = metadata['true_z'] == 0
     
     
     #We filter the initial metadata
@@ -176,7 +177,8 @@ def create(data, metadata, band_used,
     #Then extragalactic objects :
     if (extra == True):
         metadata = metadata.loc[isExtra]
-        
+    else :
+        metadata = metadata.loc[isnotExtra]   
         
     # Then we keep only objects that exist in the metadata
     clean = data[np.in1d(data['object_id'],metadata['object_id'])]
@@ -209,7 +211,7 @@ def create(data, metadata, band_used,
         clean = clean.drop(['true_peakmjd'], axis=1)     
  
         objects = np.unique(clean['object_id'])
-        PISN_nb=len(np.unique(clean.loc[clean['target']==994,'object_id']))
+        PISN_nb = len(np.unique(clean.loc[clean['target']==994,'object_id']))
         
         print('After TRUE_PEAK we have %s objects and %s measurements'%(len(objects),len(clean)), file=f)
         print('--> There are ',PISN_nb,'PISN in the dataset', file=f)
@@ -229,9 +231,9 @@ def create(data, metadata, band_used,
     for i in band_used:
         to_fuse.append(clean.loc[clean['passband']==i])
         
-    clean=pd.concat(to_fuse)
+    clean = pd.concat(to_fuse)
     objects = np.unique(clean['object_id'])
-    PISN_nb=len(np.unique(clean.loc[clean['target']==994,'object_id']))
+    PISN_nb = len(np.unique(clean.loc[clean['target']==994,'object_id']))
     
     print('After PASSBANDS we have %s objects and %s measurements'%(len(objects),len(clean)), file=f)
     print('--> There are ',PISN_nb,'PISN in the dataset\n', file=f)
@@ -293,6 +295,7 @@ def create(data, metadata, band_used,
         maxdf = pd.DataFrame(data=maxtable.unstack())
         clean = pd.merge(maxdf, clean, on=["object_id","passband"])
         clean['flux'] = clean['flux']/clean[0]
+        clean['flux_err'] = clean['flux_err'] / clean[0]
         clean = clean.drop([0],axis=1)
     
         stop = timeit.default_timer()
