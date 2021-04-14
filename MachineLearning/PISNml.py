@@ -79,15 +79,16 @@ def create_if(training,band_used,nb_param, ntrees):
     
     scores = clf.decision_function(iso)
     df_score = np.reshape(scores,(len(training),nb_band))
+    training2 = training
     
-    for i in range (nb_band) :    
-        training.insert(2+nb_param + (nb_param+1)*i, 'score'+str(band_used[i]), df_score[:,i])
+    for i in range (nb_band) :
+        training2.insert(2+nb_param + (nb_param+1)*i, 'score'+str(band_used[i]), df_score[:,i])
         
     shape_score = {'score':[], 'target':[], 'object_id':[]}
     score_df = pd.DataFrame(data=shape_score)
 
     for i in band_used:
         score_nb = 'score'+str(i)
-        score_df = pd.concat([score_df,training.loc[:,[score_nb,'target','object_id']].rename(columns={score_nb: "score"})])
+        score_df = pd.concat([score_df,training2.loc[:,[score_nb,'target','object_id']].rename(columns={score_nb: "score"})])
         
-    return training,score_df
+    return training2,score_df
