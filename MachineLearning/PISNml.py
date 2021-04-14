@@ -79,7 +79,7 @@ def create_if(training,band_used,nb_param, ntrees):
     
     scores = clf.decision_function(iso)
     df_score = np.reshape(scores,(len(training),nb_band))
-    training2 = training
+    training2 = training.copy()
     
     for i in range (nb_band) :
         training2.insert(2+nb_param + (nb_param+1)*i, 'score'+str(band_used[i]), df_score[:,i])
