@@ -66,17 +66,12 @@ def create_if(training,band_used,nb_param, ntrees):
         a single column
     ----------
     """
-    
-    print("go")
+
     # Define useful values
     width = np.shape(training)[1]
-    print("width")
     total_band = int((width-2)/nb_param)
-    print("total band = ",total_band)
     shift = 6 - total_band
     nb_band = len(band_used)
-    
-    
     
     
     iso = []
