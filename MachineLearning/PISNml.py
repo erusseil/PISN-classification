@@ -67,28 +67,21 @@ def create_if(training,band_used,nb_param, ntrees):
     ----------
     """
 
-    # Define useful values
+        
+       # Define useful values
     width = np.shape(training)[1]
     total_band = int((width-2)/nb_param)
     shift = 6 - total_band
     nb_band = len(band_used)
-    
-    
+      
     iso = []
-    
-    for j in range (len(training)): 
-        for i in band_used :
-            iso.append(np.array(training.iloc[j, 2+nb_param*(i-shift) : 2 + nb_param*(i-shift+1)]))
-
-    clf = IsolationForest(n_estimators = ntrees).fit(iso)
-    
-    scores = clf.decision_function(iso)
-    df_score = np.reshape(scores,(len(training),nb_band))
     training2 = training.copy()
-    
-    for i in band_used :
 
-        training2.insert(2+i-shift+nb_param*(i-shift+1), 'score'+str(i), df_score[:,i-shift])
+    for i in band_used :
+        iso = training.iloc[:, 2+nb_param*(i-shift) : 2 + nb_param*(i-shift+1)]
+        clf = IsolationForest(n_estimators = ntrees).fit(iso)
+        training2.insert(i-shift+2+nb_param*(i-shift+1), 'score'+str(i), clf.decision_function(iso))
+        print('score'+str(i)+" : OK")
         
     shape_score = {'score':[], 'target':[], 'object_id':[]}
     score_df = pd.DataFrame(data=shape_score)
