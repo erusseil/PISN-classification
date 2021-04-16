@@ -66,28 +66,29 @@ def create_if(training,band_used,nb_param, ntrees):
         a single column
     ----------
     """
-    
-    nb_band = len(band_used)
-    iso = []
-    
-    for j in range (len(training)): 
-        for i in range (nb_band) :
-            
-            iso.append(np.array(training.iloc[j, 2+nb_param*i : 2 + nb_param*(i+1)]))
 
-    clf = IsolationForest(n_estimators = ntrees).fit(iso)
-    
-    scores = clf.decision_function(iso)
-    df_score = np.reshape(scores,(len(training),nb_band))
-    
-    for i in range (nb_band) :    
-        training.insert(2+nb_param + (nb_param+1)*i, 'score'+str(band_used[i]), df_score[:,i])
+        
+       # Define useful values
+    width = np.shape(training)[1]
+    total_band = int((width-2)/nb_param)
+    shift = 6 - total_band
+    nb_band = len(band_used)
+      
+    iso = []
+    training2 = training.copy()
+
+    for i in band_used :
+        iso = training.iloc[:, 2+nb_param*(i-shift) : 2 + nb_param*(i-shift+1)]
+        clf = IsolationForest(n_estimators = ntrees).fit(iso)
+        training2.insert(i-shift+2+nb_param*(i-shift+1), 'score'+str(i), clf.decision_function(iso))
+        print('score'+str(i)+" : OK")
         
     shape_score = {'score':[], 'target':[], 'object_id':[]}
     score_df = pd.DataFrame(data=shape_score)
 
     for i in band_used:
         score_nb = 'score'+str(i)
-        score_df = pd.concat([score_df,training.loc[:,[score_nb,'target','object_id']].rename(columns={score_nb: "score"})])
+        score_df = pd.concat([score_df,training2.loc[:,[score_nb,'target','object_id']].rename(columns={score_nb: "score"})])
         
-    return training,score_df
+    return training2,score_df
+
