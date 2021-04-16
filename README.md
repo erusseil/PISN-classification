@@ -60,8 +60,23 @@ Once every filter is applied, you get a final (also optional) step where we chec
 Once you have your dataset, the idea is to fit the lightcurves using a given model. The parameters used for the fit (for each passband of a given object) will be used for the machine learning step. For example from a simple polynomial fit of the form A*x^2 + B*x + C,  we will extract 3 parameters per passband per object. Additionally we can add extra parameters such as the number of points, the maximum peak value or the value of the loss value for the fit. Assuming we keep all the passbands, in this example we would get 6 * 6 = 36 parameters for each object.
 
 In the end, from a data set we need to obtain a table with all the parameters for each objects. In the folder FeatureExtraction is a script "parametrisation.py" that allows that. It contains a functions 'parametrise' that will return you a table of parameter with the associated objects. Along this file you can also find "models.py" that contains the mathematical models for the fit : you can try other fits by adding your functions in this file.
-Here we tried with two models, the polynomial previous mentionned and the Bazin function (more [here](https://arxiv.org/pdf/0904.1066.pdf)) 
+Here we tried with two models, the polynomial previously mentionned and the Bazin function (more [here](https://arxiv.org/pdf/0904.1066.pdf)) 
 
 ## Machine learning prediction
 
-Once we have the parameters table, most of the work is done. We are using a random forest algorithm to train the model an observe the results. The analysis notebooks are in the folder MachineLearning
+Once we have the parameters table, most of the work is done. Two kind of analysis may come from this : 
+
+### Anomaly detection
+
+If you choose to keep only deep drilling field objects, you will notice that only the first testing file will remain. In this file there is a grant total of 6 PISN and using a "traditionnal" classification algorithm is not very powerful in this kind of situation. Since there are so few PISN, an anomaly detection algorithm is more suited for the job. The idea is that PISN might be so different from other objects that they are isolated in the space parameter. We could then focus only on the most isolated objects and hope to find PISN.
+
+To accomplish this we are using the isolation forest algorithm from sklearn. In the folder MachineLearning (eventhough this is not machine learning) you can find a script "PISNml.py" that contains a function create_if. Inputing the parameter table in this function will incremente the table with extra columns caracterising how normal the object is comparing to other objects. The lower this score is, the more isolated is the object is in the parameter space. Additionnaly you can visualise the space parameter in the jupyter notebook ParamStudy.ipynb.
+
+### Classification
+
+Now if you choose to keep Wide Deep Fast objects, your sample will be way bigger and we will be able to perform classification using a Random Forest. In the end we expect an algortihm capable of predicting PISN as "PISN", and any other target as "NON-PISN".
+
+In order to do this we are using the random forest algorithm from sklearn. In the same file PISNml.py, there is a function create_ml that will train your model that save it. You can then visualise the results of your model in the file ModelScore.ipynb
+
+
+
