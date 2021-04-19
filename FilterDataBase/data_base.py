@@ -81,13 +81,18 @@ def create(data, metadata, band_used,
     else :
         print("\n\n CREATION OF THE TESTING DATA BASE\n ", file=f)
         print("\n\n CREATION OF THE TESTING DATA BASE\n ")
-    
-
-    print('We start with  %s objects and %s measurements\n'%(len(np.unique(data['object_id'])),len(data)), file=f)
-    print('We start with  %s objects and %s measurements\n'%(len(np.unique(data['object_id'])),len(data)))
+        
     
     data = pd.merge(data, metadata.loc[:,['object_id','true_target']], on="object_id") 
     data = data.rename(columns={"true_target": "target"})
+    
+    PISN_nb = len(np.unique(data.loc[data['target']==994,'object_id']))
+
+    print('We start with  %s objects and %s measurements'%(len(np.unique(data['object_id'])),len(data)), file=f)
+    print('We start with  %s objects and %s measurements'%(len(np.unique(data['object_id'])),len(data)))
+    print('--> There are ',PISN_nb,'PISN in the dataset\n', file=f)
+    print('--> There are ',PISN_nb,'PISN in the dataset\n')
+    
     metadata = metadata[np.in1d(metadata['object_id'],data['object_id'])] #In metadata, keep only objects that exist in data
       
     #------------------------------------------------------------------------------------------------------------------
