@@ -75,29 +75,43 @@ def create_if(data,band_used,nb_param, ntrees, split_band=False):
     width = np.shape(data)[1]
     nb_band = len(band_used)
     shift = 6 - nb_band # Needs consecutive bands to work. Is equal to the minimal band
-
-      
-    # First part : apply the isolation forest and add a column to a copy of the initial df    
-    
+  
     data2 = data.copy()
 
+    reshaped = np.array(data.iloc[:, 2 : 2 + nb_param])
+    
+    for i in range(nb_band-1) :
+        reshaped = np.concatenate([reshaped,data.iloc[:, 2+nb_param*(i+1) : 2 + nb_param*(i+2)]])
+       
+
+    # First part : apply the isolation forest and add a column to a copy of the initial df    
+
     if split_band == True:
-        
+                      
+        """ 
         iso = []
         for i in range (nb_band) :
             iso = data.iloc[:, 2+nb_param*(i) : 2 + nb_param*(i+1)]
             clf = IsolationForest(n_estimators = ntrees).fit(iso)
             data2.insert(i+2+nb_param*(i+1), 'score'+str(i+shift), clf.decision_function(iso))
-            print('score'+str(i+shift)+" : OK")    
-    
-    else :
+                    
+        """
+               
+        for i in range (nb_band) :
+                 
+            clf = IsolationForest(n_estimators = ntrees).fit(reshaped[i*len(data):(i+1)*len(data)])
+            scores = clf.decision_function(reshaped[i*len(data):(i+1)*len(data)])
+            data2.insert(i+2+nb_param*(i+1), 'score'+str(i+shift), scores)
+            print('score'+str(i+shift)+" : OK")         
         
-        reshaped = np.array(data.loc[:,0:]).reshape(nb_band*len(data),nb_param)
-        clf = IsolationForest(n_estimators = 100).fit(reshaped)
+        
+    else :
+
+        clf = IsolationForest(n_estimators = ntrees).fit(reshaped)
         scores = clf.decision_function(reshaped)
         
         for i in range (nb_band) :
-            single_band = scores[i*int(len(scores)/nb_band):(i+1)*int(len(scores)/nb_band)]
+            single_band = scores[i*len(data):(i+1)*len(data)]
             data2.insert(i+2+nb_param*(i+1), 'score'+str(i+shift), single_band)
         print("All bands : OK")
             
