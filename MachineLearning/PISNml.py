@@ -42,25 +42,28 @@ def create_ml(training,save,binary=True):
     
     
     
-def create_if(training,band_used,nb_param, ntrees):
+def create_if(data,band_used,nb_param, ntrees, split_band=False):
     
     """Perform anomaly detection using isolation forest
     
     Parameters
     ----------
-    training: pd.DataFrame
+    data: pd.DataFrame
         Table containing all parameters for each object
     band_used: np.array
         Array of the passbands chosen
     ntrees: int
         Number of trees to use for the isolation forest
+    split_band: boolean
+        If true perform isolation forest for each band
+        independently. Default is False
     ----------
         
     
     Returns
     ----------
-    training: pd.Dataframe
-        Original table with added anomaly score columns
+    data2: pd.Dataframe
+        Copy of original table with added anomaly score columns
     score_df: pd.Dataframe
         Additionnal dataframe containing all the scores on
         a single column
@@ -68,27 +71,44 @@ def create_if(training,band_used,nb_param, ntrees):
     """
 
         
-       # Define useful values
-    width = np.shape(training)[1]
-    total_band = int((width-2)/nb_param)
-    shift = 6 - total_band
+    # Define useful values
+    width = np.shape(data)[1]
     nb_band = len(band_used)
+    shift = 6 - nb_band # Needs consecutive bands to work. Is equal to the minimal band
+
       
-    iso = []
-    training2 = training.copy()
+    # First part : apply the isolation forest and add a column to a copy of the initial df    
+    
+    data2 = data.copy()
 
-    for i in band_used :
-        iso = training.iloc[:, 2+nb_param*(i-shift) : 2 + nb_param*(i-shift+1)]
-        clf = IsolationForest(n_estimators = ntrees).fit(iso)
-        training2.insert(i-shift+2+nb_param*(i-shift+1), 'score'+str(i), clf.decision_function(iso))
-        print('score'+str(i)+" : OK")
+    if split_band == True:
         
+        iso = []
+        for i in range (nb_band) :
+            iso = data.iloc[:, 2+nb_param*(i) : 2 + nb_param*(i+1)]
+            clf = IsolationForest(n_estimators = ntrees).fit(iso)
+            data2.insert(i+2+nb_param*(i+1), 'score'+str(i+shift), clf.decision_function(iso))
+            print('score'+str(i+shift)+" : OK")    
+    
+    else :
+        
+        reshaped = np.array(data.loc[:,0:]).reshape(nb_band*len(data),nb_param)
+        clf = IsolationForest(n_estimators = 100).fit(reshaped)
+        scores = clf.decision_function(reshaped)
+        
+        for i in range (nb_band) :
+            single_band = scores[i*int(len(scores)/nb_band):(i+1)*int(len(scores)/nb_band)]
+            data2.insert(i+2+nb_param*(i+1), 'score'+str(i+shift), single_band)
+        print("All bands : OK")
+            
+            
+    # Second part : Create a df with all scores aligned
+    
     shape_score = {'score':[], 'target':[], 'object_id':[]}
-    score_df = pd.DataFrame(data=shape_score)
-
+    score_df = pd.DataFrame(data=shape_score)  
+    
     for i in band_used:
-        score_nb = 'score'+str(i)
-        score_df = pd.concat([score_df,training2.loc[:,[score_nb,'target','object_id']].rename(columns={score_nb: "score"})])
-        
-    return training2,score_df
-
+            score_nb = 'score'+str(i)
+            score_df = pd.concat([score_df,data2.loc[:,[score_nb,'target','object_id']].rename(columns={score_nb: "score"})])
+            
+    return data2,score_df
