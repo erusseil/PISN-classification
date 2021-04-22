@@ -51,7 +51,7 @@ One might want to apply specific cuts, to filter certain objects. You can :
 
 --> Keep only the first half of each curve (that is points before maximum)
 
-Once every filter is applied, you get a final (also optional) step where we check object 'completeness'. It means that is a given object has less than a minimum of points (to be inputed) in each of the chosen passband, then it is removed from the final dataset.
+Once every filter is applied, you get a final (also optional) step where we check object 'completeness'. It means that if a given object has less than a minimum of points (to be inputed) in each of the chosen passband, then it is removed from the final dataset.
 
 
   
