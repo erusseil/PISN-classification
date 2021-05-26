@@ -120,7 +120,6 @@ def split_meta(meta):
     upper_data.loc[:,'object_id'] = upper_data.loc[:,'object_id'].astype('int');
     
     final_df = pd.concat([lower_data,upper_data],ignore_index=True)
-    final_df = final_df.drop(columns='Unnamed: 0')
     
     
     return final_df
