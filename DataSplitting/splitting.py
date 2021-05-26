@@ -76,12 +76,13 @@ def split(database,mini,size=365,band_used=[0,1,2,3,4,5]):
 
     final_df = pd.concat(to_fuse)
     
-    # Count the number of objects with 
+    # Count the number of passband with at least "mini" points for each object
     
     count_bool = final_df[final_df['detected_bool']==1].pivot_table(index="passband", columns="object_id", values="mjd",aggfunc=lambda x: len(x))
-
     df_validband = pd.DataFrame(data={'nb_valid' : (count_bool>=mini).sum()})
 
+    # Keep objects with at least 1 passband that satisfies the previous condition
+    
     final_df = pd.merge(df_validband,final_df, on=["object_id"])
     final_df = final_df[final_df['nb_valid']!=0]
     final_df = final_df.drop(['nb_valid'],axis=1)
