@@ -42,7 +42,7 @@ def create_ml(training,save,binary=True):
     
     
     
-def create_if(data,band_used,nb_param, ntrees, split_band=False):
+def create_if(data,band_used,nb_param, ntrees, split_band=0):
     
     """Perform anomaly detection using isolation forest
     
@@ -54,11 +54,13 @@ def create_if(data,band_used,nb_param, ntrees, split_band=False):
         Array of the passbands chosen
     ntrees: int
         Number of trees to use for the isolation forest
-    split_band: boolean
-        If true perform isolation forest for each band
-        independently. Default is False
+    split_band: int
+        If 2 performs n isolation forests in the n passbands. Each light curve is an object
+        If 1 performs 1 isolation forest where each light curve is an object
+        Else performs 1 isolation where each object is the collection of all it's lightcurves
+        Default is 0
     ----------
-        
+         
     
     Returns
     ----------
@@ -86,7 +88,7 @@ def create_if(data,band_used,nb_param, ntrees, split_band=False):
 
     # First part : apply the isolation forest and add a column to a copy of the initial df    
 
-    if split_band == True:
+    if split_band == 2:
                       
         """ 
         iso = []
@@ -105,7 +107,7 @@ def create_if(data,band_used,nb_param, ntrees, split_band=False):
             print('score'+str(i+shift)+" : OK")         
         
         
-    else :
+    elif split_band == 1:
 
         clf = IsolationForest(n_estimators = ntrees).fit(reshaped)
         scores = clf.decision_function(reshaped)
@@ -114,15 +116,25 @@ def create_if(data,band_used,nb_param, ntrees, split_band=False):
             single_band = scores[i*len(data):(i+1)*len(data)]
             data2.insert(i+2+nb_param*(i+1), 'score'+str(i+shift), single_band)
         print("All bands : OK")
+        
+    else : 
+        
+        clf = IsolationForest(n_estimators = ntrees).fit(data.iloc[:,2:])
+        scores = clf.decision_function(data.iloc[:,2:])
+        data2.insert(2+nb_param*nb_band, 'score', scores)
             
             
     # Second part : Create a df with all scores aligned
     
-    shape_score = {'score':[], 'target':[], 'object_id':[]}
-    score_df = pd.DataFrame(data=shape_score)  
+
     
-    for i in band_used:
-            score_nb = 'score'+str(i)
-            score_df = pd.concat([score_df,data2.loc[:,[score_nb,'target','object_id']].rename(columns={score_nb: "score"})])
-            
+    if (split_band == 1) or (split_band == 2):
+        shape_score = {'score':[], 'target':[], 'object_id':[]}
+        score_df = pd.DataFrame(data=shape_score)  
+        for i in band_used:
+                score_nb = 'score'+str(i)
+                score_df = pd.concat([score_df,data2.loc[:,[score_nb,'target','object_id']].rename(columns={score_nb: "score"})])
+    else :
+        score_df = pd.DataFrame({'score':data2['score'], 'target':data2['target'], 'object_id':data2['object_id']})
+
     return data2,score_df
