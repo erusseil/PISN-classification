@@ -11,7 +11,7 @@ import pickle
 
 
 
-def create_ml(training,save,binary=True):
+def create_ml(training,save,binary=True,target=994,nb_tree=100):
     
     """Create a classification algorithm using random forest
     
@@ -24,18 +24,24 @@ def create_ml(training,save,binary=True):
     binary: boolean
         If true, all non-PISN we be grouped in the target
         1. Default is True
+    target: int
+        Integer associated to the class to be find by the model
+        Default is 994 (PISN)
+    nb_tree: int
+        Number of tree to use for the random forest
+        Default is 100 
     ----------
 
     """
     
     if binary == True :
-        isnotPISN_train = training['target']!=994
+        isnotPISN_train = training['target']!=target
         training.loc[isnotPISN_train,'target']=1
         
     X_train = training.loc[:,0:]
     y_train = training['target']
 
-    model=RandomForestClassifier()
+    model=RandomForestClassifier(n_estimators=nb_tree)
     forst = model.fit(X_train, y_train)
 
     pickle.dump(forst, open("%s.sav"%save, 'wb'))
