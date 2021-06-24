@@ -8,4 +8,5 @@ os
 glob
 sklearn
 pickle
-
+corner
+seaborn
