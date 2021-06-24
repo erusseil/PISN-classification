@@ -8,7 +8,7 @@ from models import *
 
 
 def parametrise(clean, nb_param, band_used, guess, err, save, checkpoint='', begin=0,
-               cost=True, maxi=True, nb_points=True, peaktable=''):
+               cost=True, maxi=True, nb_points=True, nb_DB=True, peaktable=''):
      
     """Find best fit parameters for the polynomial model.
     
@@ -44,6 +44,9 @@ def parametrise(clean, nb_param, band_used, guess, err, save, checkpoint='', beg
     nb_points: bool (optional) 
         If True, add the number of points used for the fit
         as a parameter for each passband. Default is True.
+    nb_DB: bool (optional) 
+        If True, add the number of points with DB = True used for the fit
+        for each passband. Default is True.
     peaktable: pd.DataFrame
         Two columns data frame : Maximum flux of the lightcurves 
         before normalisation along with the corresponding ids
@@ -56,6 +59,7 @@ def parametrise(clean, nb_param, band_used, guess, err, save, checkpoint='', beg
     
     if maxi == True:     #Let's add the maximum flux as a column if needed
         clean = pd.merge(peaktable, clean, on=["object_id","passband"])
+       
      
     #Get the number of passband used
     nb_passband = len(band_used)
@@ -82,6 +86,9 @@ def parametrise(clean, nb_param, band_used, guess, err, save, checkpoint='', beg
         extra_param += 1    
         
     if nb_points == True :
+        extra_param += 1    
+        
+    if nb_DB == True :
         extra_param += 1    
      
     #####################################################################################
@@ -148,7 +155,8 @@ def parametrise(clean, nb_param, band_used, guess, err, save, checkpoint='', beg
                 band_max = obj.loc[:,0].iloc[0]
                 ligne = np.append(ligne,band_max)
                 
-                
+            if nb_DB == True :
+                ligne = np.append(ligne,obj['detected_bool'].sum())
                     
         table.loc[j,0:] = np.array(ligne).flatten()
         table.to_pickle(save) 

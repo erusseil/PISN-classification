@@ -12,7 +12,7 @@ def create(data, metadata, band_used,
            name, PISNdf='', ratioPISN=-1,
            training=True, ddf=True,
            extra=True, Dbool=False, complete=True,
-           mini=5, mjd_tozero=True, half=True, 
+           mini=5, mjd_tozero=True, 
            norm_flux=True, metatest=''):
     """
     Construct training or test sample with required fraction of PISN.
@@ -57,8 +57,6 @@ def create(data, metadata, band_used,
         If True, add ratioPISN to the training sample, otherwise remove 
         all PISN and add 1-ratioPISN to the test sample. 
         Default is True.
-    half: bool (optional)
-        If True, keep only points before the peak. Default is True.
     metatest: pd.DataFrame (optional)
         metadata corresponding to the test sample from PLAsTiCC zenodo files.
         Default is ''
@@ -81,13 +79,18 @@ def create(data, metadata, band_used,
     else :
         print("\n\n CREATION OF THE TESTING DATA BASE\n ", file=f)
         print("\n\n CREATION OF THE TESTING DATA BASE\n ")
-    
-
-    print('We start with  %s objects and %s measurements\n'%(len(np.unique(data['object_id'])),len(data)), file=f)
-    print('We start with  %s objects and %s measurements\n'%(len(np.unique(data['object_id'])),len(data)))
+        
     
     data = pd.merge(data, metadata.loc[:,['object_id','true_target']], on="object_id") 
     data = data.rename(columns={"true_target": "target"})
+    
+    PISN_nb = len(np.unique(data.loc[data['target']==994,'object_id']))
+
+    print('We start with  %s objects and %s measurements'%(len(np.unique(data['object_id'])),len(data)), file=f)
+    print('We start with  %s objects and %s measurements'%(len(np.unique(data['object_id'])),len(data)))
+    print('--> There are ',PISN_nb,'PISN in the dataset\n', file=f)
+    print('--> There are ',PISN_nb,'PISN in the dataset\n')
+    
     metadata = metadata[np.in1d(metadata['object_id'],data['object_id'])] #In metadata, keep only objects that exist in data
       
     #------------------------------------------------------------------------------------------------------------------
@@ -194,33 +197,38 @@ def create(data, metadata, band_used,
     #List of all objects/peaks in the clean sample
     objects = np.unique(clean['object_id'])
     
-    #------------------------------------------------------------------------------------------------------------------
-    
-    # Take only points before true peak
-  
-    #------------------------------------------------------------------------------------------------------------------
-    
-    # We get all the peak values
-    peaklist=metadata.loc[:,['true_peakmjd','object_id']]
  
-    if half==True:
-        start = timeit.default_timer()
-        clean = pd.merge(clean, peaklist, on="object_id")
-        clean['true_peakmjd'] = clean['mjd'] - clean['true_peakmjd']
-        clean = clean[clean['true_peakmjd'] < 0]
-        clean = clean.drop(['true_peakmjd'], axis=1)     
- 
-        objects = np.unique(clean['object_id'])
-        PISN_nb = len(np.unique(clean.loc[clean['target']==994,'object_id']))
-        
-        print('After TRUE_PEAK we have %s objects and %s measurements'%(len(objects),len(clean)), file=f)
-        print('--> There are ',PISN_nb,'PISN in the dataset', file=f)
-        print('After TRUE_PEAK we have %s objects and %s measurements'%(len(objects),len(clean)))
-        print('--> There are ',PISN_nb,'PISN in the dataset')
-        stop = timeit.default_timer()
-        print('Total time to select points before true peak %.1f sec\n'%(stop - start), file=f)
-        print('Total time to select points before true peak %.1f sec\n'%(stop - start)) 
-        
+
+  #                                     ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ R E M O V E D ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
+  #  #------------------------------------------------------------------------------------------------------------------
+  #  
+  #  # Take only points before true peak
+  #
+  #  #------------------------------------------------------------------------------------------------------------------
+  #  
+  #  # We get all the peak values
+  #  peaklist=metadata.loc[:,['true_peakmjd','object_id']]
+  #
+  #  if half==True:
+  #      start = timeit.default_timer()
+  #      clean = pd.merge(clean, peaklist, on="object_id")
+  #      clean['true_peakmjd'] = clean['mjd'] - clean['true_peakmjd']
+  #      clean = clean[clean['true_peakmjd'] < 0]
+  #      clean = clean.drop(['true_peakmjd'], axis=1)     
+  #
+  #      objects = np.unique(clean['object_id'])
+  #      PISN_nb = len(np.unique(clean.loc[clean['target']==994,'object_id']))
+  #      
+  #      print('After TRUE_PEAK we have %s objects and %s measurements'%(len(objects),len(clean)), file=f)
+  #      print('--> There are ',PISN_nb,'PISN in the dataset', file=f)
+  #      print('After TRUE_PEAK we have %s objects and %s measurements'%(len(objects),len(clean)))
+  #      print('--> There are ',PISN_nb,'PISN in the dataset')
+  #      stop = timeit.default_timer()
+  #      print('Total time to select points before true peak %.1f sec\n'%(stop - start), file=f)
+  #      print('Total time to select points before true peak %.1f sec\n'%(stop - start)) 
+  # 
+  #                                      ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ R E M O V E D ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
+    
     #------------------------------------------------------------------------------------------------------------------
     
     #Filter the passband

@@ -11,7 +11,7 @@ import pickle
 
 
 
-def create_ml(training,save,binary=True):
+def create_ml(training,save,binary=True,target=994,nb_tree=100):
     
     """Create a classification algorithm using random forest
     
@@ -24,71 +24,79 @@ def create_ml(training,save,binary=True):
     binary: boolean
         If true, all non-PISN we be grouped in the target
         1. Default is True
+    target: int
+        Integer associated to the class to be find by the model
+        Default is 994 (PISN)
+    nb_tree: int
+        Number of tree to use for the random forest
+        Default is 100 
     ----------
 
     """
     
     if binary == True :
-        isnotPISN_train = training['target']!=994
+        isnotPISN_train = training['target']!=target
         training.loc[isnotPISN_train,'target']=1
         
     X_train = training.loc[:,0:]
     y_train = training['target']
 
-    model=RandomForestClassifier()
+    model=RandomForestClassifier(n_estimators=nb_tree)
     forst = model.fit(X_train, y_train)
 
     pickle.dump(forst, open("%s.sav"%save, 'wb'))
     
     
     
-def create_if(training,band_used,nb_param, ntrees):
+def create_if(data,band_used,nb_param, ntrees, split_band=0):
     
     """Perform anomaly detection using isolation forest
     
     Parameters
     ----------
-    training: pd.DataFrame
+    data: pd.DataFrame
         Table containing all parameters for each object
     band_used: np.array
         Array of the passbands chosen
     ntrees: int
         Number of trees to use for the isolation forest
+    split_band: int
+        If 2 performs n isolation forests in the n passbands. Each light curve is an object
+        If 1 performs 1 isolation forest where each light curve is an object
+        Else performs 1 isolation where each object is the collection of all it's lightcurves
+        Default is 0
     ----------
-        
+         
     
     Returns
     ----------
-    training: pd.Dataframe
-        Original table with added anomaly score columns
     score_df: pd.Dataframe
-        Additionnal dataframe containing all the scores on
+        Dataframe containing all the scores on
         a single column
     ----------
     """
 
         
-       # Define useful values
-    width = np.shape(training)[1]
-    total_band = int((width-2)/nb_param)
-    shift = 6 - total_band
+    # Define useful values
+    width = np.shape(data)[1]
     nb_band = len(band_used)
-      
-    iso = []
-    training2 = training.copy()
+  
+    data2 = data.copy()
 
-    for i in band_used :
-        iso = training.iloc[:, 2+nb_param*(i-shift) : 2 + nb_param*(i-shift+1)]
-        clf = IsolationForest(n_estimators = ntrees).fit(iso)
-        training2.insert(i-shift+2+nb_param*(i-shift+1), 'score'+str(i), clf.decision_function(iso))
-        print('score'+str(i)+" : OK")
-        
-    shape_score = {'score':[], 'target':[], 'object_id':[]}
-    score_df = pd.DataFrame(data=shape_score)
+    clf = IsolationForest(n_estimators = ntrees).fit(data.iloc[:,2:])
+    scores = clf.decision_function(data.iloc[:,2:])
+    data2.insert(2+nb_param*nb_band, 'score', scores)
+            
+            
+        # Second part : Create a df with all scores aligned
+    
+    if (split_band == 1) or (split_band == 2):
+        shape_score = {'score':[], 'target':[], 'object_id':[]}
+        score_df = pd.DataFrame(data=shape_score)  
+        for i in band_used:
+                score_nb = 'score'+str(i)
+                score_df = pd.concat([score_df,data2.loc[:,[score_nb,'target','object_id']].rename(columns={score_nb: "score"})])
+    else :
+        score_df = pd.DataFrame({'score':data2['score'], 'target':data2['target'], 'object_id':data2['object_id']})
 
-    for i in band_used:
-        score_nb = 'score'+str(i)
-        score_df = pd.concat([score_df,training2.loc[:,[score_nb,'target','object_id']].rename(columns={score_nb: "score"})])
-        
-    return training2,score_df
-
+    return score_df
