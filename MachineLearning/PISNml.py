@@ -70,10 +70,8 @@ def create_if(data,band_used,nb_param, ntrees, split_band=0):
     
     Returns
     ----------
-    data2: pd.Dataframe
-        Copy of original table with added anomaly score columns
     score_df: pd.Dataframe
-        Additionnal dataframe containing all the scores on
+        Dataframe containing all the scores on
         a single column
     ----------
     """
@@ -82,57 +80,15 @@ def create_if(data,band_used,nb_param, ntrees, split_band=0):
     # Define useful values
     width = np.shape(data)[1]
     nb_band = len(band_used)
-    shift = 6 - nb_band # Needs consecutive bands to work. Is equal to the minimal band
   
     data2 = data.copy()
 
-    reshaped = np.array(data.iloc[:, 2 : 2 + nb_param])
-    
-    for i in range(nb_band-1) :
-        reshaped = np.concatenate([reshaped,data.iloc[:, 2+nb_param*(i+1) : 2 + nb_param*(i+2)]])
-       
-
-    # First part : apply the isolation forest and add a column to a copy of the initial df    
-
-    if split_band == 2:
-                      
-        """ 
-        iso = []
-        for i in range (nb_band) :
-            iso = data.iloc[:, 2+nb_param*(i) : 2 + nb_param*(i+1)]
-            clf = IsolationForest(n_estimators = ntrees).fit(iso)
-            data2.insert(i+2+nb_param*(i+1), 'score'+str(i+shift), clf.decision_function(iso))
-                    
-        """
-               
-        for i in range (nb_band) :
-                 
-            clf = IsolationForest(n_estimators = ntrees).fit(reshaped[i*len(data):(i+1)*len(data)])
-            scores = clf.decision_function(reshaped[i*len(data):(i+1)*len(data)])
-            data2.insert(i+2+nb_param*(i+1), 'score'+str(i+shift), scores)
-            print('score'+str(i+shift)+" : OK")         
-        
-        
-    elif split_band == 1:
-
-        clf = IsolationForest(n_estimators = ntrees).fit(reshaped)
-        scores = clf.decision_function(reshaped)
-        
-        for i in range (nb_band) :
-            single_band = scores[i*len(data):(i+1)*len(data)]
-            data2.insert(i+2+nb_param*(i+1), 'score'+str(i+shift), single_band)
-        print("All bands : OK")
-        
-    else : 
-        
-        clf = IsolationForest(n_estimators = ntrees).fit(data.iloc[:,2:])
-        scores = clf.decision_function(data.iloc[:,2:])
-        data2.insert(2+nb_param*nb_band, 'score', scores)
+    clf = IsolationForest(n_estimators = ntrees).fit(data.iloc[:,2:])
+    scores = clf.decision_function(data.iloc[:,2:])
+    data2.insert(2+nb_param*nb_band, 'score', scores)
             
             
-    # Second part : Create a df with all scores aligned
-    
-
+        # Second part : Create a df with all scores aligned
     
     if (split_band == 1) or (split_band == 2):
         shape_score = {'score':[], 'target':[], 'object_id':[]}
@@ -143,4 +99,4 @@ def create_if(data,band_used,nb_param, ntrees, split_band=0):
     else :
         score_df = pd.DataFrame({'score':data2['score'], 'target':data2['target'], 'object_id':data2['object_id']})
 
-    return data2,score_df
+    return score_df
