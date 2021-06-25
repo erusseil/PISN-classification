@@ -10,10 +10,10 @@ It was original created for a Kaggle challenge in 2018. More here details [here]
 
 The training sample was composed of 7,846 objects considered to be spectroscopically confirmed and the testing sample was composed of about 3,492,888 objects, corresponding to a photometric-only sample. The difficulty comes from the statistical differences between these two data sets. Training and test samples are not representative of each other, thus breaking the initial assumptions from supervised machine learning. 
 
-Moreover, the data is not only statistically different, training and test samples also hold different number of classes (or populations). 
-Since LSST will be more sensitive than any other telescope in history, it is reasonable to expect that it will detect objects that we've never observed before. In order to mimic this situation, a few very rare objects were added to the PLAsTiCC testing sample (only !). The organizers of PLAsTiCC hoped that participants would use some kind of anomaly detection technique to mark as 'unknown' objects that were only in the testing sample. This task did not attract many participants. However, this is a very important task and if we fail to identify previously unknown objects, new physics could slip between our hands !
+Moreover, the data is not only statistically different, training and testing samples also hold different number of classes (or populations). 
+Since LSST will be more sensitive than any other telescope in history, it is reasonable to expect that it will detect objects that we've never observed before. In order to mimic this situation, a few very rare objects were added to the PLAsTiCC testing sample (only !). The organizers of PLAsTiCC hoped that participants would use some kind of anomaly detection techniques to mark as 'unknown' objects that were only in the testing sample. This task did not attract many participants. However, this is a very important task and if we fail to identify previously unknown objects, new physics could slip between our hands !
 
-It is in this context that this project takes place. We will focus on identifying Pair Instability Supernovae (called PISN) in particular. This is a rare type of transient event which  was not present in the PLAsTiCC training sample. Now that the testing sample is public, we will use the PISN data to train directly a machine learning model. 
+It is in this context that this project takes place. We will focus on identifying Pair Instability Supernovae (called PISN) in particular but in principle the method is wide enough to be applied to other objects. PISN are a rare type of transient event which was not present in the PLAsTiCC training sample. Now that the testing sample is public, we will use the PISN data to train directly a machine learning model. 
 
 To begin with, you need to have the PLAsTiCC data set. It is downladable [here](https://zenodo.org/record/2539456#.YED0lP4o9hE)
 
@@ -29,11 +29,11 @@ Once all files are downloaded we are ready. We can distinguish four main steps :
 
 ## Splitting the dataset
 
-Instead of using the dataset as it is one might want to divide each light curve into two light curves. This results in more objects with less points per object. We then keep only objects that have at least 1 point with signal in one of it's passband. The splitting function is stored in the file splitting.py and can be executed through the file split_database.ipynb.
+This first step in optional. Instead of using the dataset as it is one might want to divide each light curve into two smaller light curves. This results in more objects with less points per object. We then keep only objects that have at least 1 point with signal in one of it's passband. The splitting function is stored in the file splitting.py and can be executed through the file split_database.ipynb. The idea is to create the first models without splitting the data, and assuming it gives good results, then challenge it on a harder dataset.
 
 ## Filter dataset
 
-In the folder FilterDataBase there is the script "data_base.py" that contains a functions 'create' that will return you a clean filtered dataset. At each step informations about the filters applied and remaining objects are printed. All those informations are saved in a txt file. This function gives control over a variety of option detailed below : 
+There are many ways to improve your dataset by simply filtering 'useless' objects. In the folder FilterDataBase there is the script "data_base.py" that contains a functions 'create' that will return you a clean filtered dataset. At each step informations about the filters applied and remaining objects are printed. All those informations are saved in a txt file. This function gives control over a variety of option detailed below : 
 
 ### Data transformation
 
@@ -51,8 +51,7 @@ One might want to apply specific cuts, to filter certain objects. You can :
 
 --> Keep only points marqued as detected boolean
 
---> Add pair instabilities to your dataset
-
+--> Add PISNe to your dataset
 
 Once every filter is applied, you get a final (also optional) step where we check object 'completeness'. It means that if a given object has less than a minimum of points (to be inputed) in each of the chosen passband, then it is removed from the final dataset.
 
@@ -60,24 +59,28 @@ Once every filter is applied, you get a final (also optional) step where we chec
   
 ## Parametrise dataset
 
-Once you have your dataset, the idea is to fit the lightcurves using a given model. The parameters used for the fit (for each passband of a given object) will be used for the machine learning step. For example from a simple polynomial fit of the form A*x^2 + B*x + C,  we will extract 3 parameters per passband per object. Additionally we can add extra parameters such as the number of points, the maximum peak value, the value of the loss value for the fit or the number of detected boolean points. Assuming we keep all the passbands, in this example we would get 6 * 7 = 42 parameters for each object.
+Once you have your dataset, the idea is to fit the lightcurves using a given model. The parameters used for the fit (for each passband of a given object) will be used for the machine learning step. For example from a simple polynomial fit of the form A*x^2 + B*x + C,  we will extract 3 parameters per passband per object. Additionally we have the option of adding te following extra parameters: the number of points; the maximum peak value; the loss value for the fit; and the number of detected boolean points. Assuming we keep all the passbands and all the extra parameters, in this example we would get 6 * 7 = 42 parameters for each object.
 
-In the end, from a data set we need to obtain a table with all the parameters for each objects. In the folder FeatureExtraction is a script "parametrisation.py" that allows that. It contains a functions 'parametrise' that will return you a table of parameter with the associated objects. Along this file you can also find "models.py" that contains the mathematical models for the fit : you can try other fits by adding your functions in this file.
+In the end, from a dataset we need to obtain a rectangular table with all the parameters for each objects. In the folder FeatureExtraction is a script "parametrisation.py" that allows that. It contains a functions 'parametrise' that will return you a table of parameter with the associated objects. Along this file you can also find "models.py" that contains the mathematical models for the fit : you can try other fits by adding your functions in this file.
 Here we tried with two models, the polynomial previously mentionned and the Bazin function (more [here](https://arxiv.org/pdf/0904.1066.pdf)) 
 
 ## Machine learning prediction
 
 Once we have the parameters table, most of the work is done. Two kind of analysis may come from this : 
 
+### Classification
+
+This is traditional classification machine learning using a Random Forest. In order to do this we are using the random forest algorithm from sklearn. In the same file PISNml.py, there is a function create_ml that will train your model and saves it. You can then visualise the results of your model in the file ModelScore.ipynb. Be aware that supervised classification is not really suited to detect few objects hidden in a large dataset, the results we obtained for PISNe are not very conclusive. Anomaly detection should be prefered in this case.
+
 ### Anomaly detection
 
 Since there are so few PISN,  anomaly detection algorithm is suited for the job. The idea is that PISN might be so different from other objects that they are isolated in the space parameter. We could then focus only on the most isolated objects and hope to find PISN.
 
-To accomplish this we are using the isolation forest algorithm from sklearn. In the folder MachineLearning you can find a script "PISNml.py" that contains a function create_if. Inputing the parameter table in this function will incremente the table with extra columns caracterising how normal the object is comparing to other objects. The lower this score is, the more isolated is the object is in the parameter space. Additionnaly you can visualise the space parameter in the jupyter notebook ParamStudy.ipynb.
-
-### Classification
-
-Now you can also try to use more traditional classification machine learning using a Random Forest.In order to do this we are using the random forest algorithm from sklearn. In the same file PISNml.py, there is a function create_ml that will train your model that save it. You can then visualise the results of your model in the file ModelScore.ipynb
+To accomplish this we are using the isolation forest algorithm from sklearn. In the folder MachineLearning you can find a script "PISNml.py" that contains a function create_if. Inputing the parameter table in this function will incremente the table with extra columns caracterising how normal the object is comparing to other objects. The lower this score is, the more isolated is the object is in the parameter space. The creation and visualisation of your results are available in file Isolation forest.ipynb. Additionnaly you can visualise the space parameter in the jupyter notebook ParamStudy.ipynb. This method provides good results to identify high signal PISNe.
 
 
+## Discussion
 
+The pipeline is operational and experiments can be done using different fits, different filters and different parametrisations.
+This work took place in the context of a master 2 internship and thus, all the results I obtained are detailed in the file PISN_report.pdf.
+Additionnal results were produced after the report : the main contaminant of the isolation forest being Active Galactic Nuclei (AGNs), we tried to apply the random forest classification to detect them. It turns out that the model we used (quadratic fit, 4 extra parameters and WFD sample) is extremely efficient at identifying AGNs. We can therefore use this model to filter the AGNs and then upgrade the results for the detection of PISNe.
